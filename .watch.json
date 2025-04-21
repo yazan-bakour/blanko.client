@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json.schemastore.org/watch",
+  "watchOptions": {
+    "usePolling": false,
+    "excludeFiles": ["**/*.git/**", "**/bin/**", "**/obj/**"],
+    "excludeDirectories": ["bin", "obj", "node_modules"]
+  }
+}

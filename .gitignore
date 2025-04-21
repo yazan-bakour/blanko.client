@@ -1,0 +1,12 @@
+# Build results
+bin/
+obj/
+
+# IDE files
+*.user
+.vs/
+.vscode/
+.editorconfig
+
+# Library files managed by LibMan
+wwwroot/lib/

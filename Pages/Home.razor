@@ -1,0 +1,19 @@
+﻿@page "/"
+@using Banko.Client.Services.User
+@inject UserStateService UserState
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, @userName</h1>
+
+Welcome to your new app.
+
+@code {
+  private string? userName;
+
+  protected override Task OnInitializedAsync()
+  {
+    userName = UserState.CurrentUser?.User.FullName ?? "Guest";
+    return Task.CompletedTask;
+  }
+}
