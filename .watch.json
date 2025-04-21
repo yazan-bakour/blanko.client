@@ -3,6 +3,13 @@
   "watchOptions": {
     "usePolling": false,
     "excludeFiles": ["**/*.git/**", "**/bin/**", "**/obj/**"],
-    "excludeDirectories": ["bin", "obj", "node_modules"]
+    "excludeDirectories": ["bin", "obj", "node_modules"],
+    "watchFiles": [
+      "**/*.razor",
+      "**/*.razor.css",
+      "**/*.css",
+      "**/*.cs",
+      "**/*.json"
+    ]
   }
 }

@@ -1,19 +1,51 @@
 ﻿@page "/"
 @using Banko.Client.Services.User
 @inject UserStateService UserState
+@implements IDisposable
 
-<PageTitle>Home</PageTitle>
-
-<h1>Hello, @userName</h1>
-
-Welcome to your new app.
+<MudCard Elevation="25" Class="pa-4">
+  <MudCardHeader Class="justify-center">
+    <MudText Typo="Typo.h5" Align="Align.Center">Hello, @userName</MudText>
+  </MudCardHeader>
+  <MudCardContent>
+    <MudText Typo="Typo.subtitle1" Align="Align.Center">Welcome to your new app.</MudText>
+    @if (UserState.IsAuthenticated)
+    {
+      <MudAlert Severity="Severity.Success" Class="mt-16">Your have successfully logged in.</MudAlert>
+    }
+    else
+    {
+      <MudAlert Severity="Severity.Info" Class="mt-16">Please Login or Register.</MudAlert>
+    }
+  </MudCardContent>
+</MudCard>
 
 @code {
-  private string? userName;
+  private string userName = "Guest";
 
-  protected override Task OnInitializedAsync()
+  protected override async void OnInitialized()
   {
-    userName = UserState.CurrentUser?.User.FullName ?? "Guest";
-    return Task.CompletedTask;
+    UserState.OnAuthStateChanged += UpdateUserName;
+    await UserState.InitializeAuthenticationStateAsync();
+    UpdateUserName();
+  }
+
+  private void UpdateUserName()
+  {
+    if (UserState.IsAuthenticated && UserState.CurrentUser != null)
+    {
+      userName = UserState.CurrentUser.User.FullName ?? "Guest";
+    }
+    else
+    {
+      userName = "Guest";
+    }
+
+    StateHasChanged();
+  }
+
+  public void Dispose()
+  {
+    UserState.OnAuthStateChanged -= UpdateUserName;
   }
 }

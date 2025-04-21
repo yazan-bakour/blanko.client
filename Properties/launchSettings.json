@@ -7,10 +7,11 @@
       "workingDirectory": "$(ProjectDir)",
       "hotReloadEnabled": true,
       "hotReloadProfile": "blazorwasm",
-      "commandLineArgs": "watch run",
+      "commandLineArgs": "watch run --project $(ProjectDir)",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
       },
       "applicationUrl": "https://localhost:7296;http://localhost:5296"
     },

@@ -7,6 +7,8 @@ obj/
 .vs/
 .vscode/
 .editorconfig
+.env
 
 # Library files managed by LibMan
 wwwroot/lib/
+wwwroot/appsettings.json

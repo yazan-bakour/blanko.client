@@ -1,16 +1,23 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-  <div class="sidebar">
-    <NavMenu />
-  </div>
 
-  <main>
-    <div class="top-row px-4">
-      <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-    </div>
-
-    <article class="content px-4">
+<MudLayout Class="vh-100" Style="@($"background-color:{Colors.Indigo.Darken2};")">
+  <MudAppBar Dense="true" Elevation="1">
+    <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+    <MudSpacer />
+  </MudAppBar>
+  <NavMenu @bind-Open="_open" />
+  <MudMainContent Class="pt-16 px-16">
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4" Style="@($"color:{Colors.LightBlue.Lighten1};")">
       @Body
-    </article>
-  </main>
-</div>
+    </MudContainer>
+  </MudMainContent>
+</MudLayout>
+
+@code {
+  private bool _open = false;
+
+  private void ToggleDrawer()
+  {
+    _open = !_open;
+  }
+}

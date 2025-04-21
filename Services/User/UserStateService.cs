@@ -51,15 +51,24 @@ namespace Banko.Client.Services.User
 
       if (string.IsNullOrEmpty(token))
       {
+        _isAuthenticated = false;
+        _currentUser = null;
         return false;
       }
 
       try
       {
-        // TODO: Add a method to your UserService to validate token or get user info
-        // _currentUser = await _userService.GetUserInfoAsync();
-        _isAuthenticated = true;
-        return true;
+        var userProfile = await _userService.GetCurrentUserProfileAsync(token);
+
+        if (userProfile != null)
+        {
+          _currentUser = userProfile;
+          _isAuthenticated = true;
+          NotifyAuthStateChanged();
+          return true;
+        }
+
+        return false;
       }
       catch
       {
