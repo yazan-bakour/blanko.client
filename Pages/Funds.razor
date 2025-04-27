@@ -1,4 +1,7 @@
 ﻿@page "/funds"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject HttpClient Http
 
 <PageTitle>Funds</PageTitle>

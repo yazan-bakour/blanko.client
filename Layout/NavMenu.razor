@@ -1,22 +1,24 @@
 ﻿@using Banko.Client.Services.User
+@using Banko.Client.Services
 @inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject LoadingService LoadingService
 @implements IDisposable
 
 <MudDrawer @bind-Open="@Open" Elevation="1" Variant="@DrawerVariant.Persistent">
-  <MudDrawerHeader>
-    <MudText Typo="Typo.h6">Banko</MudText>
+  <MudDrawerHeader Class="justify-space-between">
+    <MudText Typo="Typo.h6" Color="UserState.IsAuthenticated? Color.Success: Color.Error">Banko</MudText>
   </MudDrawerHeader>
   <MudNavMenu>
-    <MudNavLink Match="NavLinkMatch.All" Href="">Home</MudNavLink>
-    <MudNavLink Href="profile">Profile</MudNavLink>
-    <MudNavLink Href="account">Account</MudNavLink>
-    <MudNavLink Href="dashboard">Dashboard</MudNavLink>
-    <MudNavLink Href="funds">Funds</MudNavLink>
-    <MudNavLink Href="transactions">Transactions</MudNavLink>
+    <MudNavLink Match="NavLinkMatch.All" Href="">Homes</MudNavLink>
     @if (UserState.IsAuthenticated)
     {
+      <MudNavLink Href="profile">Profile</MudNavLink>
+      <MudNavLink Href="account">Account</MudNavLink>
+      <MudNavLink Href="dashboard">Dashboard</MudNavLink>
+      <MudNavLink Href="funds">Funds</MudNavLink>
+      <MudNavLink Href="transactions">Transactions</MudNavLink>
       <MudNavLink @onclick="HandleLogout">Logout</MudNavLink>
     }
     else
@@ -32,7 +34,6 @@
   public bool Open { get; set; }
   [Parameter]
   public EventCallback<bool> OpenChanged { get; set; }
-  private bool isLoading = false;
   protected override async Task OnInitializedAsync()
   {
     UserState.OnAuthStateChanged += StateHasChanged;
@@ -41,7 +42,7 @@
   }
   private async Task HandleLogout()
   {
-    isLoading = true;
+    LoadingService.IsLoading = true;
     try
     {
       await UserState.LogoutAsync();
@@ -54,7 +55,7 @@
     }
     finally
     {
-      isLoading = false;
+      LoadingService.IsLoading = false;
       NavigationManager.NavigateTo("/");
     }
   }

@@ -1,32 +1,37 @@
 ﻿@page "/profile"
+
+@using Microsoft.AspNetCore.Authorization
 @using Banko.Client.Models
 @using Banko.Client.Services.User
+@attribute [Authorize]
 @inject UserStateService UserState
 @implements IDisposable
 
 <PageTitle>Profile</PageTitle>
 
-<MudCard Elevation="25" Class="pa-4">
-  <MudAvatar Color="Color.Warning" Variant="Variant.Filled">
-    <MudIcon Color="Color.Dark" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" />
-  </MudAvatar>
-  <MudCardHeader>
-    <MudText Typo="Typo.h5" Align="Align.Center">@user?.FullName</MudText>
-  </MudCardHeader>
-  <MudCardContent>
-    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.Email</MudText>
-    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.Role</MudText>
-    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.CreatedAt</MudText>
-  </MudCardContent>
+<MudCard Elevation="25" Class="pa-4 w-100">
+  <MudGrid>
+    <MudItem md="2" Class="justify-center">
+      <MudAvatar Color="Color.Warning" Variant="Variant.Filled">
+        <MudIcon Color="Color.Dark" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" />
+      </MudAvatar>
+    </MudItem>
+
+    <MudItem md="6">
+      <MudItem md="12">Name: @user?.FullName</MudItem>
+      <MudItem md="12">Email: @user?.Email</MudItem>
+      <MudItem md="12">Role: @user?.Role</MudItem>
+      <MudItem md="12">Created At: @user?.CreatedAt</MudItem>
+    </MudItem>
+  </MudGrid>
 </MudCard>
 
 @code {
   private UserData? user = null;
 
-  protected override async void OnInitialized()
+  protected override void OnInitialized()
   {
     UserState.OnAuthStateChanged += UpdateUser;
-    await UserState.InitializeAuthenticationStateAsync();
     UpdateUser();
   }
 
@@ -34,10 +39,9 @@
   {
     if (UserState.IsAuthenticated && UserState.CurrentUser != null)
     {
-      user = UserState.CurrentUser.User ?? null;
+      user = UserState.CurrentUser.User;
+      StateHasChanged();
     }
-
-    StateHasChanged();
   }
 
   public void Dispose()

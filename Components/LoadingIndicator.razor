@@ -1,0 +1,29 @@
+@namespace Banko.Client.Components
+
+@using Banko.Client.Services;
+@inject LoadingService LoadingService
+@implements IDisposable
+
+@if (LoadingService.IsLoading)
+{
+  <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+    <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+  </MudOverlay>
+}
+
+@code {
+  protected override void OnInitialized()
+  {
+    LoadingService.OnChange += HandleStateChanged;
+  }
+
+  private void HandleStateChanged()
+  {
+    InvokeAsync(StateHasChanged);
+  }
+
+  public void Dispose()
+  {
+    LoadingService.OnChange -= HandleStateChanged;
+  }
+}

@@ -7,6 +7,7 @@ namespace Banko.Client.Services
   public class CustomAuthStateProvider : AuthenticationStateProvider
   {
     private readonly UserStateService _userStateService;
+    private ClaimsPrincipal _cachedUser = new(new ClaimsIdentity());
 
     public CustomAuthStateProvider(UserStateService userStateService)
     {
@@ -16,23 +17,29 @@ namespace Banko.Client.Services
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
+      if (_cachedUser.Identity is { IsAuthenticated: true })
+      {
+        return new AuthenticationState(_cachedUser);
+      }
+
       await _userStateService.InitializeAuthenticationStateAsync();
 
       if (!_userStateService.IsAuthenticated)
       {
+        _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
         return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
       }
 
       var identity = new ClaimsIdentity(
         [
-
           new Claim(ClaimTypes.Name, _userStateService.CurrentUser?.User.FullName ?? string.Empty),
           new Claim(ClaimTypes.Email, _userStateService.CurrentUser?.User.Email ?? string.Empty),
-
         ], "apiauth_type"
       );
 
-      return new AuthenticationState(new ClaimsPrincipal(identity));
+      _cachedUser = new ClaimsPrincipal(identity);
+
+      return new AuthenticationState(_cachedUser);
     }
 
     private void AuthStateChanged()

@@ -1,4 +1,7 @@
 ﻿@page "/transactions"
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
 @inject HttpClient Http
 
 <PageTitle>Transactions</PageTitle>

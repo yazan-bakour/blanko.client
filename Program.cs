@@ -11,6 +11,7 @@ using MudBlazor.Services;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+builder.Services.AddScoped<LoadingService>();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
@@ -21,12 +22,6 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 
 builder.Services.AddMudServices();
-
-// using (var scope = host.Services.CreateScope())
-// {
-//     var userState = scope.ServiceProvider.GetRequiredService<UserStateService>();
-//     await userState.InitializeAuthenticationStateAsync();
-// }
 
 var apiBaseAddress = builder.Configuration["API_BASE_URL"] ??
   throw new InvalidOperationException("API Base Address is not configured.");

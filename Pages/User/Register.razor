@@ -1,9 +1,11 @@
 @page "/register"
 @using Banko.Client.Models
 @using Banko.Client.Services.User
+@using Banko.Client.Services
 @inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject LoadingService LoadingService
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
@@ -17,17 +19,9 @@
     </MudForm>
   </MudCardContent>
   <MudCardActions Class="d-flex justify-center">
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="px-8" Size="Size.Large"
-      Disabled="@(!success || isLoading)" OnClick="HandleLogin">
-      @if (isLoading)
-      {
-        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
-        <MudText Class="ms-2">Processing</MudText>
-      }
-      else
-      {
-        <MudText>Register</MudText>
-      }
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="px-8" Size="Size.Large" Disabled="@(!success)"
+      OnClick="HandleLogin">
+      <MudText>Register</MudText>
     </MudButton>
   </MudCardActions>
 </MudCard>
@@ -36,7 +30,6 @@
   private UserRegister registerModel = new();
   private bool success;
   private MudForm? form;
-  private bool isLoading = false;
 
   private async Task HandleLogin()
   {
@@ -45,7 +38,7 @@
     {
       try
       {
-        isLoading = true;
+        LoadingService.IsLoading = true;
         await UserState.RegisterAsync(registerModel);
         Snackbar.Add("Registration successful! Please login now.", Severity.Success);
         NavigationManager.NavigateTo("/login");
@@ -56,7 +49,7 @@
       }
       finally
       {
-        isLoading = false;
+        LoadingService.IsLoading = false;
       }
     }
   }

@@ -1,8 +1,23 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+<LoadingIndicator />
+
+@* Show 404 page.
+trigger loading *@
+
+<Router AppAssembly="@typeof(App).Assembly">
   <Found Context="routeData">
-    <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+      <NotAuthorized>
+        <RedirectToLogin />
+      </NotAuthorized>
+      <Authorizing>
+        <p>Checking authorization...</p>
+      </Authorizing>
+    </AuthorizeRouteView>
     <FocusOnNavigate RouteData="@routeData" Selector="h1" />
   </Found>
+
   <NotFound>
     <PageTitle>Not found</PageTitle>
     <LayoutView Layout="@typeof(MainLayout)">
@@ -14,6 +29,7 @@
 <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
 <MudDialogProvider />
 <MudSnackbarProvider />
+
 @code {
   private bool _isDarkMode;
   private MudThemeProvider? _mudThemeProvider;
