@@ -1,12 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
-<MudLayout Class="vh-100" Style="@($"background-color:{Colors.Indigo.Darken2};")">
+<MudLayout>
   <MudAppBar Dense="true" Elevation="1">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
     <MudSpacer />
   </MudAppBar>
   <NavMenu @bind-Open="_open" />
-  <MudMainContent Class="pt-16 px-16">
+  <MudMainContent Class="pt-16 pb-16">
     <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4" Style="@($"color:{Colors.LightBlue.Lighten1};")">
       @Body
     </MudContainer>
@@ -14,7 +14,7 @@
 </MudLayout>
 
 @code {
-  private bool _open = false;
+  private bool _open = true;
 
   private void ToggleDrawer()
   {

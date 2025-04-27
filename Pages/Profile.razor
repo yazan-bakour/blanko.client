@@ -1,0 +1,47 @@
+﻿@page "/profile"
+@using Banko.Client.Models
+@using Banko.Client.Services.User
+@inject UserStateService UserState
+@implements IDisposable
+
+<PageTitle>Profile</PageTitle>
+
+<MudCard Elevation="25" Class="pa-4">
+  <MudAvatar Color="Color.Warning" Variant="Variant.Filled">
+    <MudIcon Color="Color.Dark" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" />
+  </MudAvatar>
+  <MudCardHeader>
+    <MudText Typo="Typo.h5" Align="Align.Center">@user?.FullName</MudText>
+  </MudCardHeader>
+  <MudCardContent>
+    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.Email</MudText>
+    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.Role</MudText>
+    <MudText Typo="Typo.subtitle1" Align="Align.Center">@user?.CreatedAt</MudText>
+  </MudCardContent>
+</MudCard>
+
+@code {
+  private UserData? user = null;
+
+  protected override async void OnInitialized()
+  {
+    UserState.OnAuthStateChanged += UpdateUser;
+    await UserState.InitializeAuthenticationStateAsync();
+    UpdateUser();
+  }
+
+  private void UpdateUser()
+  {
+    if (UserState.IsAuthenticated && UserState.CurrentUser != null)
+    {
+      user = UserState.CurrentUser.User ?? null;
+    }
+
+    StateHasChanged();
+  }
+
+  public void Dispose()
+  {
+    UserState.OnAuthStateChanged -= UpdateUser;
+  }
+}

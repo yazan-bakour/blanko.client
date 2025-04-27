@@ -35,6 +35,27 @@ namespace Banko.Client.Services.User
       }
     }
 
+    public async Task RegisterAsync(UserRegister registerModel)
+    {
+      try
+      {
+        var user = await _userService.RegisterAsync(registerModel);
+
+        _currentUser = user;
+        _isAuthenticated = true;
+
+        await StoreTokenAsync(user.Token);
+
+        NotifyAuthStateChanged();
+      }
+      catch (Exception ex)
+      {
+        _currentUser = null;
+        _isAuthenticated = false;
+        throw new HttpRequestException($"Register request failed: {ex.Message}", ex);
+      }
+    }
+
     public async Task LogoutAsync()
     {
       _currentUser = null;

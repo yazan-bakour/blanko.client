@@ -1,4 +1,4 @@
-@page "/Login"
+@page "/register"
 @using Banko.Client.Models
 @using Banko.Client.Services.User
 @inject UserStateService UserState
@@ -7,10 +7,12 @@
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
-    <MudForm Model="@loginModel" @ref="form" @bind-IsValid="@success">
-      <MudTextField Label="Email" @bind-Value="loginModel.Email" For="@(() => loginModel.Email)" Immediate="true"
+    <MudForm Model="@registerModel" @ref="form" @bind-IsValid="@success">
+      <MudTextField Label="Full Name" @bind-Value="registerModel.FullName" For="@(() => registerModel.FullName)"
+        Immediate="true" Required />
+      <MudTextField Label="Email" @bind-Value="registerModel.Email" For="@(() => registerModel.Email)" Immediate="true"
         Required />
-      <MudTextField Label="Password" @bind-Value="loginModel.Password" For="@(() => loginModel.Password)"
+      <MudTextField Label="Password" @bind-Value="registerModel.Password" For="@(() => registerModel.Password)"
         Immediate="true" Required />
     </MudForm>
   </MudCardContent>
@@ -24,14 +26,14 @@
       }
       else
       {
-        <MudText>Login</MudText>
+        <MudText>Register</MudText>
       }
     </MudButton>
   </MudCardActions>
 </MudCard>
 
 @code {
-  private UserLogin loginModel = new();
+  private UserRegister registerModel = new();
   private bool success;
   private MudForm? form;
   private bool isLoading = false;
@@ -44,9 +46,9 @@
       try
       {
         isLoading = true;
-        await UserState.LoginAsync(loginModel);
-        Snackbar.Add("Login successful!", Severity.Success);
-        NavigationManager.NavigateTo("/");
+        await UserState.RegisterAsync(registerModel);
+        Snackbar.Add("Registration successful! Please login now.", Severity.Success);
+        NavigationManager.NavigateTo("/login");
       }
       catch (Exception ex)
       {

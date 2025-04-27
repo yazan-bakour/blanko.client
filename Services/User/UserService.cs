@@ -5,12 +5,6 @@ using System.Text.Json;
 
 namespace Banko.Client.Services.User
 {
-  public interface IUserService
-  {
-    Task<UserRead> LoginAsync(UserLogin loginModel);
-    Task<UserRead> GetCurrentUserProfileAsync(string token);
-  }
-
   public class UserService : IUserService
   {
     private readonly HttpClient _httpClient;
@@ -52,6 +46,30 @@ namespace Banko.Client.Services.User
       catch (Exception ex) when (ex is not HttpRequestException)
       {
         throw new HttpRequestException($"Login request failed: {ex.Message}", ex);
+      }
+    }
+    public async Task<UserRead> RegisterAsync(UserRegister registerModel)
+    {
+      try
+      {
+        var content = JsonSerializer.Serialize(registerModel);
+        var requestContent = new StringContent(content, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync($"{_baseUrl}/register", requestContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+          throw new HttpRequestException(
+            $"Register failed with status code: {response.StatusCode}, " +
+            $"Message: {await response.Content.ReadAsStringAsync()}");
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
+        return result ?? throw new InvalidOperationException("Failed to deserialize register response");
+      }
+      catch (Exception ex) when (ex is not HttpRequestException)
+      {
+        throw new HttpRequestException($"Register request failed: {ex.Message}", ex);
       }
     }
     public async Task<UserRead> GetCurrentUserProfileAsync(string token)
