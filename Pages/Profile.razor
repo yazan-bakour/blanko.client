@@ -1,12 +1,20 @@
 ﻿@page "/profile"
 
-@using Microsoft.AspNetCore.Authorization
+@using System
 @using Banko.Client.Models
+@using Banko.Client.Services
 @using Banko.Client.Services.User
-@attribute [Authorize]
+@using Microsoft.AspNetCore.Authorization
+
 @inject UserStateService UserState
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject HttpClient Http
+
+@attribute [Authorize]
 @implements IDisposable
 
+@* user.CreatedAt ios empty require browser to refresh *@
 <PageTitle>Profile</PageTitle>
 
 <MudCard Elevation="25" Class="pa-4 w-100">
@@ -16,36 +24,56 @@
         <MudIcon Color="Color.Dark" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" />
       </MudAvatar>
     </MudItem>
-
-    <MudItem md="6">
-      <MudItem md="12">Name: @user?.FullName</MudItem>
-      <MudItem md="12">Email: @user?.Email</MudItem>
-      <MudItem md="12">Role: @user?.Role</MudItem>
-      <MudItem md="12">Created At: @user?.CreatedAt</MudItem>
-    </MudItem>
+    @if (user == null)
+    {
+      <MudAlert Severity="Severity.Error">Could not load profile data.</MudAlert>
+    }
+    else
+    {
+      <MudItem md="6">
+        <MudItem md="12">Id: @user.Id</MudItem>
+        <MudItem md="12">Name: @user.FullName</MudItem>
+        <MudItem md="12">Email: @user.Email</MudItem>
+        <MudItem md="12">Role: @user.Role</MudItem>
+        <MudItem md="12">Created At: @user.CreatedAt</MudItem>
+      </MudItem>
+    }
   </MudGrid>
 </MudCard>
 
 @code {
-  private UserData? user = null;
+  private UserData? user => UserState.CurrentUser?.User;
 
-  protected override void OnInitialized()
+  protected override async Task OnInitializedAsync()
   {
-    UserState.OnAuthStateChanged += UpdateUser;
-    UpdateUser();
+    UserState.OnUserStateChanged += HandleStateChange;
+    LoadingService.IsLoading = true;
+
+    try
+    {
+      await UserState.LoadUserDataAsync();
+      if (user != null)
+      {
+        Snackbar.Add($"Welcome back, {user.FullName}!", Severity.Success);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
   }
 
-  private void UpdateUser()
+  private void HandleStateChange()
   {
-    if (UserState.IsAuthenticated && UserState.CurrentUser != null)
-    {
-      user = UserState.CurrentUser.User;
-      StateHasChanged();
-    }
+    InvokeAsync(StateHasChanged);
   }
 
   public void Dispose()
   {
-    UserState.OnAuthStateChanged -= UpdateUser;
+    UserState.OnUserStateChanged -= HandleStateChange;
   }
 }

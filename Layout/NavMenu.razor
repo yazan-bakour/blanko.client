@@ -1,21 +1,25 @@
-﻿@using Banko.Client.Services.User
+﻿@using Banko.Client.Models
+@using Banko.Client.Services.Auth
+@using Banko.Client.Services.User
 @using Banko.Client.Services
+
 @inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
+@inject IAuthService AuthService
 @implements IDisposable
 
 <MudDrawer @bind-Open="@Open" Elevation="1" Variant="@DrawerVariant.Persistent">
   <MudDrawerHeader Class="justify-space-between">
-    <MudText Typo="Typo.h6" Color="UserState.IsAuthenticated? Color.Success: Color.Error">Banko</MudText>
+    <MudText Typo="Typo.h6" Color="IsAuthenticated? Color.Success: Color.Error">Banko</MudText>
   </MudDrawerHeader>
   <MudNavMenu>
     <MudNavLink Match="NavLinkMatch.All" Href="">Homes</MudNavLink>
-    @if (UserState.IsAuthenticated)
+    @if (IsAuthenticated)
     {
       <MudNavLink Href="profile">Profile</MudNavLink>
-      <MudNavLink Href="account">Account</MudNavLink>
+      <MudNavLink Href=@($"account/{CurrentUser?.User.Id}")>Account</MudNavLink>
       <MudNavLink Href="dashboard">Dashboard</MudNavLink>
       <MudNavLink Href="funds">Funds</MudNavLink>
       <MudNavLink Href="transactions">Transactions</MudNavLink>
@@ -34,34 +38,45 @@
   public bool Open { get; set; }
   [Parameter]
   public EventCallback<bool> OpenChanged { get; set; }
+  private bool IsAuthenticated;
+  private UserRead? CurrentUser;
+
   protected override async Task OnInitializedAsync()
   {
-    UserState.OnAuthStateChanged += StateHasChanged;
-    await UserState.InitializeAuthenticationStateAsync();
+    AuthService.OnAuthStateChanged += AuthStateChanged;
+    CurrentUser = await AuthService.GetCurrentUserAsync();
+    IsAuthenticated = await AuthService.IsAuthenticatedAsync();
+  }
+  private async void AuthStateChanged()
+  {
+    CurrentUser = await AuthService.GetCurrentUserAsync();
+    IsAuthenticated = await AuthService.IsAuthenticatedAsync();
     await InvokeAsync(StateHasChanged);
   }
+
   private async Task HandleLogout()
   {
     LoadingService.IsLoading = true;
+
     try
     {
-      await UserState.LogoutAsync();
-      await InvokeAsync(StateHasChanged);
+      await AuthService.LogoutAsync();
+      await OpenChanged.InvokeAsync(false);
     }
     catch (Exception ex)
     {
-      Console.WriteLine($"Error during logout: {ex.Message}");
       Snackbar.Add($"Error during logout: {ex.Message}", Severity.Error);
     }
     finally
     {
       LoadingService.IsLoading = false;
-      NavigationManager.NavigateTo("/");
+      NavigationManager.NavigateTo("/", forceLoad: true);
     }
   }
 
   public void Dispose()
   {
-    UserState.OnAuthStateChanged -= StateHasChanged;
+    AuthService.OnAuthStateChanged -= AuthStateChanged;
   }
+}
 }

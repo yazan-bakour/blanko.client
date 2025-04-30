@@ -2,10 +2,13 @@
 @using Banko.Client.Models
 @using Banko.Client.Services.User
 @using Banko.Client.Services
+@using Banko.Client.Services.Auth
+
 @inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
+@inject IAuthService AuthService
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
@@ -20,7 +23,7 @@
   </MudCardContent>
   <MudCardActions Class="d-flex justify-center">
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="px-8" Size="Size.Large" Disabled="@(!success)"
-      OnClick="HandleLogin">
+      OnClick="HandleRegister">
       <MudText>Register</MudText>
     </MudButton>
   </MudCardActions>
@@ -31,16 +34,16 @@
   private bool success;
   private MudForm? form;
 
-  private async Task HandleLogin()
+  private async Task HandleRegister()
   {
     await form!.Validate();
     if (form.IsValid)
     {
+      LoadingService.IsLoading = true;
       try
       {
-        LoadingService.IsLoading = true;
-        await UserState.RegisterAsync(registerModel);
-        Snackbar.Add("Registration successful! Please login now.", Severity.Success);
+        await AuthService.RegisterAsync(registerModel);
+        Snackbar.Add("Registration is successful, please login!", Severity.Success);
         NavigationManager.NavigateTo("/login");
       }
       catch (Exception ex)

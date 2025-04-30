@@ -1,6 +1,15 @@
 ﻿@page "/"
+
+@using Banko.Client.Models
+@using Banko.Client.Services
 @using Banko.Client.Services.User
+@using Banko.Client.Services.Auth
+
 @inject UserStateService UserState
+@inject IAuthService AuthService
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+
 @implements IDisposable
 
 <MudCard Elevation="25" Class="pa-4">
@@ -9,7 +18,7 @@
   </MudCardHeader>
   <MudCardContent>
     <MudText Typo="Typo.subtitle1" Align="Align.Center">Welcome to your new app.</MudText>
-    @if (UserState.IsAuthenticated)
+    @if (userName != "Guest")
     {
       <MudAlert Severity="Severity.Success" Class="mt-16">Your have successfully logged in.</MudAlert>
     }
@@ -21,31 +30,39 @@
 </MudCard>
 
 @code {
-  private string userName = "Guest";
+  private string? userName;
 
-  protected override async void OnInitialized()
+  private UserData? user = null;
+
+  protected override async Task OnInitializedAsync()
   {
-    UserState.OnAuthStateChanged += UpdateUserName;
-    await UserState.InitializeAuthenticationStateAsync();
-    UpdateUserName();
+    await LoadUserDataAsync();
   }
-
-  private void UpdateUserName()
+  private async Task LoadUserDataAsync()
   {
-    if (UserState.IsAuthenticated && UserState.CurrentUser != null)
+    try
     {
-      userName = UserState.CurrentUser.User.FullName ?? "Guest";
+      LoadingService.IsLoading = true;
+      await UserState.LoadUserDataAsync();
+      userName = UserState.CurrentUser?.User.FullName ?? "Guest";
     }
-    else
+    catch (Exception ex)
     {
-      userName = "Guest";
+      Snackbar.Add($"Error loading user data: {ex.Message}", Severity.Error);
     }
-
+    finally
+    {
+      LoadingService.IsLoading = false;
+      StateHasChanged();
+    }
+  }
+  private void UpdateUI()
+  {
+    user = UserState.CurrentUser?.User;
     StateHasChanged();
   }
-
   public void Dispose()
   {
-    UserState.OnAuthStateChanged -= UpdateUserName;
+    UserState.OnUserStateChanged -= UpdateUI;
   }
 }

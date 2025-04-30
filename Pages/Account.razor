@@ -1,9 +1,91 @@
-﻿@page "/account"
-
+﻿@page "/account/{UserId:int}"
+@using Banko.Client.Models.Account
+@using Banko.Client.Services
+@using Banko.Client.Services.Account
 @using Microsoft.AspNetCore.Authorization
-@attribute [Authorize]
+
 @inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject AccountStateService AccountState
+@inject HttpClient Http
+
+@attribute [Authorize]
+@implements IDisposable
 
 <PageTitle>Account</PageTitle>
 
-<h1>Account</h1>
+@if (!accounts?.Any() ?? true)
+{
+  <MudAlert Severity="Severity.Info">No accounts found.</MudAlert>
+}
+else
+{
+  <MudGrid>
+    @foreach (var account in accounts!)
+    {
+      <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="25" Class="pa-4">
+          <MudCardHeader>
+            <CardHeaderContent>
+              <MudText Typo="Typo.h6">Account @account.AccountNumber</MudText>
+            </CardHeaderContent>
+            <CardHeaderAvatar>
+              <MudAvatar Color="Color.Primary">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance" />
+              </MudAvatar>
+            </CardHeaderAvatar>
+          </MudCardHeader>
+          <MudCardContent>
+            <MudList T="string">
+              <MudListItem T="string" Icon="@Icons.Material.Filled.Payment">
+                Balance: @account.Balance.ToString("C2")
+              </MudListItem>
+              <MudListItem T="string" Icon="@Icons.Material.Filled.Person">
+                Type: To be updated.
+              </MudListItem>
+              <MudListItem T="string" Icon="@Icons.Material.Filled.CalendarToday">
+                Created: @account.CreatedAt.ToLocalTime().ToString("g")
+              </MudListItem>
+            </MudList>
+          </MudCardContent>
+        </MudCard>
+      </MudItem>
+    }
+  </MudGrid>
+}
+
+@code {
+  [Parameter]
+  public int UserId { get; set; }
+  private AccountRead[]? accounts => AccountState.CurrentAccounts;
+  protected override async Task OnInitializedAsync()
+  {
+    AccountState.OnUserStateChanged += HandleStateChange;
+    LoadingService.IsLoading = true;
+    try
+    {
+      await AccountState.InitializeAccountStateAsync(UserId);
+      if (accounts?.Any() == true)
+      {
+        Snackbar.Add($"Found {accounts.Length} account(s)", Severity.Success);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
+  }
+  private void HandleStateChange()
+  {
+    InvokeAsync(StateHasChanged);
+  }
+  public void Dispose()
+  {
+    AccountState.OnUserStateChanged -= HandleStateChange;
+  }
+}

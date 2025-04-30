@@ -7,16 +7,25 @@ using Banko.Client.Services;
 using Blazored.LocalStorage;
 using Banko.Client.Services.User;
 using MudBlazor.Services;
+using Banko.Client.Services.Account;
+using Banko.Client.Services.Auth;
+using System.ComponentModel.Design;
+using Banko.Client.Helper;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<LoadingService>();
+builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped(typeof(ICacheValidator<>), typeof(CacheValidator<>));
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<UserStateService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<AccountStateService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();

@@ -2,10 +2,13 @@
 @using Banko.Client.Models
 @using Banko.Client.Services
 @using Banko.Client.Services.User
+@using Banko.Client.Services.Auth
+
 @inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
+@inject IAuthService AuthService
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
@@ -28,13 +31,6 @@
   private UserLogin loginModel = new();
   private bool success;
   private MudForm? form;
-  protected override void OnInitialized()
-  {
-    if (UserState.IsAuthenticated)
-    {
-      NavigationManager.NavigateTo("/");
-    }
-  }
 
   private async Task HandleLogin()
   {
@@ -44,7 +40,7 @@
       LoadingService.IsLoading = true;
       try
       {
-        await UserState.LoginAsync(loginModel);
+        await AuthService.LoginAsync(loginModel);
         Snackbar.Add("Login successful!", Severity.Success);
         NavigationManager.NavigateTo("/");
       }

@@ -1,50 +1,56 @@
 using System.Security.Claims;
-using Banko.Client.Services.User;
+using Banko.Client.Services.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 
-namespace Banko.Client.Services
+namespace Banko.Client.Services;
+public class CustomAuthStateProvider : AuthenticationStateProvider
 {
-  public class CustomAuthStateProvider : AuthenticationStateProvider
+  private readonly IAuthService _authService;
+  private ClaimsPrincipal _cachedUser = new(new ClaimsIdentity());
+
+  public CustomAuthStateProvider(IAuthService authService)
   {
-    private readonly UserStateService _userStateService;
-    private ClaimsPrincipal _cachedUser = new(new ClaimsIdentity());
+    _authService = authService;
+    _authService.OnAuthStateChanged += AuthStateChanged;
+  }
 
-    public CustomAuthStateProvider(UserStateService userStateService)
+  public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+  {
+    if (_cachedUser.Identity is { IsAuthenticated: true })
     {
-      _userStateService = userStateService;
-      _userStateService.OnAuthStateChanged += AuthStateChanged;
-    }
-
-    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-      if (_cachedUser.Identity is { IsAuthenticated: true })
-      {
-        return new AuthenticationState(_cachedUser);
-      }
-
-      await _userStateService.InitializeAuthenticationStateAsync();
-
-      if (!_userStateService.IsAuthenticated)
-      {
-        _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
-        return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-      }
-
-      var identity = new ClaimsIdentity(
-        [
-          new Claim(ClaimTypes.Name, _userStateService.CurrentUser?.User.FullName ?? string.Empty),
-          new Claim(ClaimTypes.Email, _userStateService.CurrentUser?.User.Email ?? string.Empty),
-        ], "apiauth_type"
-      );
-
-      _cachedUser = new ClaimsPrincipal(identity);
-
       return new AuthenticationState(_cachedUser);
     }
 
-    private void AuthStateChanged()
+    var isAuthenticated = await _authService.IsAuthenticatedAsync();
+
+    if (!isAuthenticated)
     {
-      NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+      _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
+      return new AuthenticationState(_cachedUser);
     }
+
+    var currentUser = await _authService.GetCurrentUserAsync();
+
+    if (currentUser == null)
+    {
+      _cachedUser = new ClaimsPrincipal(new ClaimsIdentity());
+      return new AuthenticationState(_cachedUser);
+    }
+
+    var identity = new ClaimsIdentity(
+        [
+            new Claim(ClaimTypes.Name, currentUser.User.FullName ?? string.Empty),
+                new Claim(ClaimTypes.Email, currentUser.User.Email ?? string.Empty),
+            ], "apiauth_type"
+    );
+
+    _cachedUser = new ClaimsPrincipal(identity);
+
+    return new AuthenticationState(_cachedUser);
+  }
+
+  private void AuthStateChanged()
+  {
+    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
   }
 }
