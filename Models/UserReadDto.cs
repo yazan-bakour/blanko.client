@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Banko.Client.Models
 {
   public enum UserRole
@@ -17,6 +19,8 @@ namespace Banko.Client.Models
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public DateTime? CreatedAt { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public UserRole? Role { get; set; }
   }
 }

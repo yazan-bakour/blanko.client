@@ -8,7 +8,7 @@
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
-@inject IAuthService AuthService
+@inject AuthStateProvider AuthState
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
@@ -42,7 +42,7 @@
       LoadingService.IsLoading = true;
       try
       {
-        await AuthService.RegisterAsync(registerModel);
+        await AuthState.Register(registerModel);
         Snackbar.Add("Registration is successful, please login!", Severity.Success);
         NavigationManager.NavigateTo("/login");
       }

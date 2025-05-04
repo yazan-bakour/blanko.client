@@ -1,49 +1,57 @@
 using Banko.Client.Models;
-using Banko.Client.Services.Auth;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Banko.Client.Helper;
 
 namespace Banko.Client.Services.User
 {
-  public class UserService(
-    HttpClient httpClient,
-    IConfiguration configuration,
-    IAuthService authService) : IUserService
+  public class UserService : IUserService
   {
-    private readonly string _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
+    private readonly HttpClient _httpClient;
+    private readonly string _baseUrl;
+    private readonly AuthHelper _authHelper;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
       PropertyNameCaseInsensitive = true
     };
 
-    public async Task<UserRead> GetCurrentUserProfileAsync()
+    public UserService(HttpClient httpClient, IConfiguration configuration, AuthHelper authHelper)
     {
-      await AuthorizationHeaderAsync();
-
-      var response = await httpClient.GetAsync($"{_baseUrl}/current");
-
-      if (!response.IsSuccessStatusCode)
-      {
-        throw new HttpRequestException(
-          $"Failed to get current user profile: {response.StatusCode}, " +
-          $"Message: {await response.Content.ReadAsStringAsync()}");
-      }
-
-      var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
-      return result ?? throw new InvalidOperationException("Failed to deserialize user response");
+      _httpClient = httpClient;
+      _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
+      _authHelper = authHelper;
     }
 
-    private async Task AuthorizationHeaderAsync()
+    public async Task<UserRead?> GetCurrentUserProfileAsync()
     {
-      var token = await authService.GetTokenAsync();
-
-      if (string.IsNullOrEmpty(token))
+      // Check if we have a valid authorization header
+      if (!await _authHelper.AuthorizationHeaderAsync())
       {
-        throw new UnauthorizedAccessException("User is not authenticated");
+        return null; // Return null to indicate no authentication
       }
 
-      httpClient.DefaultRequestHeaders.Authorization =
-          new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+      try
+      {
+        var response = await _httpClient.GetAsync($"{_baseUrl}/current");
+
+        if (!response.IsSuccessStatusCode)
+        {
+          if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+          {
+            await _authHelper.ClearTokenAsync();
+          }
+          return null; // Return null to indicate authentication failed
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
+        return result; // Return the user data or null if deserialization failed
+      }
+      catch (Exception ex)
+      {
+        Console.Error.WriteLine($"Error fetching user profile: {ex.Message}");
+        // If any exception occurs during API call, return null
+        return null;
+      }
     }
   }
 }

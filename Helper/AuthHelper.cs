@@ -1,23 +1,46 @@
-
-using Banko.Client.Services.Auth;
+using Blazored.LocalStorage;
 
 namespace Banko.Client.Helper;
 
-public class AuthHelper(IAuthService AuthService)
+public class AuthHelper(ILocalStorageService localStorage, HttpClient httpClient)
 {
-  private static readonly HttpClient _httpClient = new();
-  private readonly IAuthService _AuthService = AuthService;
+  public event Action? OnAuthStateChanged;
 
-  public async Task AuthorizationHeaderAsync()
+  public void NotifyAuthStateChanged()
   {
-    var token = await _AuthService.GetTokenAsync();
+    OnAuthStateChanged?.Invoke();
+  }
 
-    if (string.IsNullOrEmpty(token))
+  public void SetAuthorizationHeader(string token)
+  {
+    if (!string.IsNullOrEmpty(token))
     {
-      throw new UnauthorizedAccessException("User is not authenticated");
+      httpClient.DefaultRequestHeaders.Authorization =
+          new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     }
+  }
 
-    _httpClient.DefaultRequestHeaders.Authorization =
-        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+  public async Task<bool> AuthorizationHeaderAsync()
+  {
+    try
+    {
+      var token = await localStorage.GetItemAsync<string>("authToken");
+      if (string.IsNullOrEmpty(token))
+        return false;
+
+      SetAuthorizationHeader(token);
+      return true;
+    }
+    catch
+    {
+      return false;
+    }
+  }
+
+  public async Task ClearTokenAsync()
+  {
+    await localStorage.RemoveItemAsync("authToken");
+    httpClient.DefaultRequestHeaders.Authorization = null;
+    NotifyAuthStateChanged();
   }
 }

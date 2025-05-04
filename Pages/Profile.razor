@@ -5,16 +5,16 @@
 @using Banko.Client.Services
 @using Banko.Client.Services.User
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject UserStateService UserState
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
-@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize]
 @implements IDisposable
 
-@* user.CreatedAt ios empty require browser to refresh *@
 <PageTitle>Profile</PageTitle>
 
 <MudCard Elevation="25" Class="pa-4 w-100">
@@ -42,19 +42,39 @@
 </MudCard>
 
 @code {
-  private UserData? user => UserState.CurrentUser?.User;
+  private UserData? user;
 
   protected override async Task OnInitializedAsync()
   {
     UserState.OnUserStateChanged += HandleStateChange;
-    LoadingService.IsLoading = true;
+    await LoadUserProfileAsync();
+  }
 
+  private async Task LoadUserProfileAsync()
+  {
+    LoadingService.IsLoading = true;
     try
     {
-      await UserState.LoadUserDataAsync();
-      if (user != null)
+      // First try to use UserState
+      if (UserState.CurrentUser?.User != null)
       {
-        Snackbar.Add($"Welcome back, {user.FullName}!", Severity.Success);
+        user = UserState.CurrentUser.User;
+      }
+      else
+      {
+        // Otherwise get it from auth state
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
+        if (authState.User.Identity?.IsAuthenticated == true)
+        {
+          await UserState.LoadUserDataAsync();
+          user = UserState.CurrentUser?.User;
+        }
+      }
+
+      if (user == null)
+      {
+        Snackbar.Add("Unable to load profile. Please log in again.", Severity.Warning);
       }
     }
     catch (Exception ex)
@@ -69,7 +89,11 @@
 
   private void HandleStateChange()
   {
-    InvokeAsync(StateHasChanged);
+    InvokeAsync(async () =>
+    {
+      await LoadUserProfileAsync();
+      StateHasChanged();
+    });
   }
 
   public void Dispose()

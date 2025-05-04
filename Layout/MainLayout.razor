@@ -1,6 +1,6 @@
 ﻿@inherits LayoutComponentBase
 
-<MudLayout>
+<MudLayout type="typeof(App)" render-mode="WebAssemblyPrerendered" param-InitialState="serializedUserStateJson">
   <MudAppBar Dense="true" Elevation="1">
     <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@ToggleDrawer" />
     <MudSpacer />

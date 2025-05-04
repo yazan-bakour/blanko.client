@@ -4,6 +4,8 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateFullPaths>true</GenerateFullPaths>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
     <WatchFilePattern>**/*.{razor,cs,css,js,html}</WatchFilePattern>
   </PropertyGroup>
 

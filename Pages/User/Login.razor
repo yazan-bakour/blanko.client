@@ -9,40 +9,41 @@
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
+@inject AuthStateProvider AuthState
 
 <MudCard Elevation="25" Class="pa-4">
   <MudCardContent>
-    <MudForm Model="@loginModel" @ref="form" @bind-IsValid="@success">
-      <MudTextField Label="Email" @bind-Value="loginModel.Email" For="@(() => loginModel.Email)" Immediate="true"
-        Required />
-      <MudTextField Label="Password" @bind-Value="loginModel.Password" For="@(() => loginModel.Password)"
+    <MudForm Model="@loginParameters" @ref="form" @bind-IsValid="@success">
+      <MudTextField Label="Email" @bind-Value="loginParameters.Email" For="@(() => loginParameters.Email)"
+        Immediate="true" Required />
+      <MudTextField Label="Password" @bind-Value="loginParameters.Password" For="@(() => loginParameters.Password)"
         Immediate="true" Required />
     </MudForm>
   </MudCardContent>
   <MudCardActions Class="d-flex justify-center">
     <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="px-8" Size="Size.Large" Disabled="@(!success)"
-      OnClick="HandleLogin">
+      OnClick="OnSubmit">
       <MudText>Login</MudText>
     </MudButton>
   </MudCardActions>
 </MudCard>
 
 @code {
-  private UserLogin loginModel = new();
+  private UserLogin loginParameters = new();
   private bool success;
   private MudForm? form;
 
-  private async Task HandleLogin()
+  async Task OnSubmit()
   {
+    LoadingService.IsLoading = true;
     await form!.Validate();
     if (form.IsValid)
     {
-      LoadingService.IsLoading = true;
       try
       {
-        await AuthService.LoginAsync(loginModel);
+        await AuthState.Login(loginParameters);
         Snackbar.Add("Login successful!", Severity.Success);
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("");
       }
       catch (Exception ex)
       {

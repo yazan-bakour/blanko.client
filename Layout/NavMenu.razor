@@ -3,33 +3,45 @@
 @using Banko.Client.Services.User
 @using Banko.Client.Services
 
-@inject UserStateService UserState
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
-@implements IDisposable
 
 <MudDrawer @bind-Open="@Open" Elevation="1" Variant="@DrawerVariant.Persistent">
   <MudDrawerHeader Class="justify-space-between">
-    <MudText Typo="Typo.h6" Color="IsAuthenticated? Color.Success: Color.Error">Banko</MudText>
+    <AuthorizeView>
+      <Authorized>
+        <MudText Typo="Typo.h6" Color="Color.Success">Banko</MudText>
+      </Authorized>
+      <NotAuthorized>
+        <MudText Typo="Typo.h6" Color="Color.Error">Banko</MudText>
+      </NotAuthorized>
+    </AuthorizeView>
   </MudDrawerHeader>
   <MudNavMenu>
-    <MudNavLink Match="NavLinkMatch.All" Href="">Homes</MudNavLink>
-    @if (IsAuthenticated)
-    {
-      <MudNavLink Href="profile">Profile</MudNavLink>
-      <MudNavLink Href=@($"account/{CurrentUser?.User.Id}")>Account</MudNavLink>
-      <MudNavLink Href="dashboard">Dashboard</MudNavLink>
-      <MudNavLink Href="funds">Funds</MudNavLink>
-      <MudNavLink Href="transactions">Transactions</MudNavLink>
-      <MudNavLink @onclick="HandleLogout">Logout</MudNavLink>
-    }
-    else
-    {
-      <MudNavLink Href="login">Login</MudNavLink>
-      <MudNavLink Href="register">Register</MudNavLink>
-    }
+    <MudNavLink Match="NavLinkMatch.All" Href="">Home</MudNavLink>
+    <AuthorizeView>
+      <Authorized>
+        @{
+          var userId = context.User.FindFirst(ClaimTypes.NameIdentifier);
+          var userName = context.User.Identity?.Name ?? "User";
+        }
+        <MudNavLink Href="profile">@userName Profile</MudNavLink>
+        @if (!string.IsNullOrEmpty(userId?.Value))
+        {
+          <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
+        }
+        <MudNavLink Href="dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="funds">Funds</MudNavLink>
+        <MudNavLink Href="transactions">Transactions</MudNavLink>
+        <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink>
+      </Authorized>
+      <NotAuthorized>
+        <MudNavLink Href="login">Login</MudNavLink>
+        <MudNavLink Href="register">Register</MudNavLink>
+      </NotAuthorized>
+    </AuthorizeView>
   </MudNavMenu>
 </MudDrawer>
 
@@ -38,45 +50,11 @@
   public bool Open { get; set; }
   [Parameter]
   public EventCallback<bool> OpenChanged { get; set; }
-  private bool IsAuthenticated;
-  private UserRead? CurrentUser;
-
-  protected override async Task OnInitializedAsync()
-  {
-    AuthService.OnAuthStateChanged += AuthStateChanged;
-    CurrentUser = await AuthService.GetCurrentUserAsync();
-    IsAuthenticated = await AuthService.IsAuthenticatedAsync();
-  }
-  private async void AuthStateChanged()
-  {
-    CurrentUser = await AuthService.GetCurrentUserAsync();
-    IsAuthenticated = await AuthService.IsAuthenticatedAsync();
-    await InvokeAsync(StateHasChanged);
-  }
 
   private async Task HandleLogout()
   {
-    LoadingService.IsLoading = true;
-
-    try
-    {
-      await AuthService.LogoutAsync();
-      await OpenChanged.InvokeAsync(false);
-    }
-    catch (Exception ex)
-    {
-      Snackbar.Add($"Error during logout: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
-      LoadingService.IsLoading = false;
-      NavigationManager.NavigateTo("/", forceLoad: true);
-    }
-  }
-
-  public void Dispose()
-  {
-    AuthService.OnAuthStateChanged -= AuthStateChanged;
+    await AuthService.LogoutAsync();
+    await OpenChanged.InvokeAsync(false);
   }
 }
 }

@@ -4,13 +4,16 @@ using System.Text.Json;
 using Banko.Client.Models;
 using Banko.Client.Helper;
 using Blazored.LocalStorage;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Banko.Client.Services.Auth;
 public class AuthService(
   HttpClient httpClient,
   IConfiguration configuration,
   ILocalStorageService localStorage,
-  ICacheValidator<UserRead> cacheValidator) : IAuthService
+  ICacheValidator<UserRead> cacheValidator,
+  AuthHelper authHelper) : IAuthService
 {
   private readonly string _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
   private readonly JsonSerializerOptions _jsonOptions = new()
@@ -18,132 +21,58 @@ public class AuthService(
     PropertyNameCaseInsensitive = true
   };
 
-  public event Action? OnAuthStateChanged;
-
-  public async Task<bool> LoginAsync(UserLogin loginModel)
+  public async Task LoginAsync(UserLogin loginModel)
   {
     try
     {
-      var content = JsonSerializer.Serialize(loginModel);
-      var requestContent = new StringContent(content, Encoding.UTF8, "application/json");
-      var response = await httpClient.PostAsync($"{_baseUrl}/login", requestContent);
-
-      if (!response.IsSuccessStatusCode)
-      {
-        throw new HttpRequestException(
-            $"Login failed with status code: {response.StatusCode}, " +
-            $"Message: {await response.Content.ReadAsStringAsync()}");
-      }
+      var response = await httpClient.PostAsJsonAsync($"{_baseUrl}/login", loginModel);
+      response.EnsureSuccessStatusCode();
 
       var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
 
-      if (result == null)
+      if (result == null || string.IsNullOrEmpty(result.Token))
       {
-        throw new InvalidOperationException("Failed to deserialize login response");
+        throw new InvalidOperationException("Login successful but token was not received.");
       }
 
       await localStorage.SetItemAsync("authToken", result.Token);
+      httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
       cacheValidator.UpdateCache(true, result);
-      NotifyAuthStateChanged();
-      return true;
     }
     catch (Exception ex)
     {
+      await authHelper.ClearTokenAsync();
       cacheValidator.UpdateCache(false, null);
-      throw new HttpRequestException($"Login request failed: {ex.Message}", ex);
+      Console.WriteLine($"Login failed: {ex.Message}");
+      throw;
     }
   }
+  public async Task<UserRead> UserInfoAsync()
+  {
+    var response = await httpClient.GetFromJsonAsync<UserRead>($"{_baseUrl}/current") ?? throw new InvalidOperationException("Received null response from user endpoint.");
+    return response!;
+  }
 
-  public async Task<bool> RegisterAsync(UserRegister registerModel)
+  public async Task RegisterAsync(UserRegister registerModel)
   {
     try
     {
-      var content = JsonSerializer.Serialize(registerModel);
-      var requestContent = new StringContent(content, Encoding.UTF8, "application/json");
-
-      var response = await httpClient.PostAsync($"{_baseUrl}/register", requestContent);
-
-      if (!response.IsSuccessStatusCode)
-      {
-        throw new HttpRequestException(
-          $"Register failed with status code: {response.StatusCode}, " +
-          $"Message: {await response.Content.ReadAsStringAsync()}");
-      }
-
-      var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
-      if (result == null)
-      {
-        throw new InvalidOperationException("Failed to deserialize register response");
-      }
-      NotifyAuthStateChanged();
-      return true;
+      var response = await httpClient.PostAsJsonAsync($"{_baseUrl}/register", registerModel);
+      response.EnsureSuccessStatusCode();
     }
-    catch (Exception ex) when (ex is not HttpRequestException)
+    catch (HttpRequestException httpEx)
     {
-      throw new HttpRequestException($"Register request failed: {ex.Message}", ex);
+      throw new HttpRequestException($"Registration failed. Status: {httpEx.StatusCode}", httpEx);
+    }
+    catch (Exception ex)
+    {
+      throw new ApplicationException("An unexpected error occurred during registration.", ex); // Re-throw as a different type if desired
     }
   }
 
   public async Task LogoutAsync()
   {
-    await localStorage.RemoveItemAsync("authToken");
+    await authHelper.ClearTokenAsync();
     cacheValidator.UpdateCache(false, null);
-    httpClient.DefaultRequestHeaders.Authorization = null;
-    NotifyAuthStateChanged();
-  }
-  public async Task<bool> IsAuthenticatedAsync()
-  {
-    if (!cacheValidator.IsInitialized)
-    {
-      await InitializeAuthenticationStateAsync();
-    }
-    return cacheValidator.Data != null;
-  }
-  public async Task<string> GetTokenAsync()
-  {
-    return await localStorage.GetItemAsync<string>("authToken") ?? string.Empty;
-  }
-  public async Task<UserRead?> GetCurrentUserAsync()
-  {
-    if (!cacheValidator.IsInitialized)
-    {
-      await InitializeAuthenticationStateAsync();
-    }
-    return cacheValidator.Data;
-  }
-  public async Task InitializeAuthenticationStateAsync()
-  {
-    var token = await GetTokenAsync();
-
-    if (string.IsNullOrEmpty(token))
-    {
-      cacheValidator.UpdateCache(true, null);
-      return;
-    }
-
-    try
-    {
-      httpClient.DefaultRequestHeaders.Authorization =
-          new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-      var response = await httpClient.GetAsync($"{_baseUrl}/current");
-
-      if (!response.IsSuccessStatusCode)
-      {
-        await LogoutAsync();
-        return;
-      }
-
-      var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
-      cacheValidator.UpdateCache(true, result);
-    }
-    catch
-    {
-      await LogoutAsync();
-    }
-  }
-  private void NotifyAuthStateChanged()
-  {
-    OnAuthStateChanged?.Invoke();
   }
 }
