@@ -1,8 +1,7 @@
 using System.Security.Claims;
-using Banko.Client.Services.User;
 using Banko.Client.Helper;
 using Microsoft.AspNetCore.Components.Authorization;
-using Banko.Client.Models;
+using Banko.Client.Models.User;
 using Blazored.LocalStorage;
 using System.Net.Http.Headers;
 

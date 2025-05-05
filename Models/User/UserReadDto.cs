@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Banko.Client.Models
+namespace Banko.Client.Models.User
 {
   public enum UserRole
   {

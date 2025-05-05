@@ -8,6 +8,7 @@ using Blazored.LocalStorage;
 using Banko.Client.Services.User;
 using MudBlazor.Services;
 using Banko.Client.Services.Account;
+using Banko.Client.Services.Transaction;
 using Banko.Client.Services.Auth;
 using Banko.Client.Helper;
 using System.Text.Json.Serialization;
@@ -29,11 +30,13 @@ builder.Services.AddBlazoredLocalStorage();
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<UserStateService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<UserStateService>();
 builder.Services.AddScoped<AccountStateService>();
+builder.Services.AddScoped<TransactionStateService>();
 
 
 builder.Services.AddMudServices();

@@ -1,4 +1,4 @@
-using Banko.Client.Models;
+using Banko.Client.Models.User;
 using Banko.Client.Helper;
 
 namespace Banko.Client.Services.User;

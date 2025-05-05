@@ -138,10 +138,6 @@ else
     try
     {
       await AccountState.InitializeAccountStateAsync(UserId);
-      if (accounts?.Any() == true)
-      {
-        Snackbar.Add($"Found {accounts.Length} account(s)", Severity.Success);
-      }
     }
     catch (Exception ex)
     {

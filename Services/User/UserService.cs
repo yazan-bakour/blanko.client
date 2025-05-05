@@ -1,26 +1,19 @@
-using Banko.Client.Models;
+using Banko.Client.Models.User;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Banko.Client.Helper;
 
 namespace Banko.Client.Services.User
 {
-  public class UserService : IUserService
+  public class UserService(HttpClient httpClient, IConfiguration configuration, AuthHelper authHelper) : IUserService
   {
-    private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
-    private readonly AuthHelper _authHelper;
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly string _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
+    private readonly AuthHelper _authHelper = authHelper;
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
       PropertyNameCaseInsensitive = true
     };
-
-    public UserService(HttpClient httpClient, IConfiguration configuration, AuthHelper authHelper)
-    {
-      _httpClient = httpClient;
-      _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
-      _authHelper = authHelper;
-    }
 
     public async Task<UserRead> GetCurrentUserProfileAsync()
     {

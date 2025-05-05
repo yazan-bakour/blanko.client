@@ -1,6 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using Banko.Client.Models;
+using Banko.Client.Models.User;
 using Banko.Client.Helper;
 using Blazored.LocalStorage;
 using System.Net.Http.Headers;
