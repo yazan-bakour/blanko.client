@@ -1,10 +1,8 @@
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using Banko.Client.Models;
 using Banko.Client.Helper;
 using Blazored.LocalStorage;
-using System.Net.Http;
 using System.Net.Http.Headers;
 
 namespace Banko.Client.Services.Auth;
@@ -63,10 +61,6 @@ public class AuthService(
     catch (HttpRequestException httpEx)
     {
       throw new HttpRequestException($"Registration failed. Status: {httpEx.StatusCode}", httpEx);
-    }
-    catch (Exception ex)
-    {
-      throw new ApplicationException("An unexpected error occurred during registration.", ex); // Re-throw as a different type if desired
     }
   }
 

@@ -21,7 +21,7 @@ namespace Banko.Client.Models.Account
     public AccountStatus Status { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public Currency Currency { get; set; }
+    public Currency Currency { get; set; } = Currency.EUR;
     public DateTime? LastTransactionDate { get; set; }
     public decimal MinimumBalance { get; set; } = 0.0m;
     public decimal OverdraftLimit { get; set; } = 0.0m;

@@ -24,11 +24,11 @@
     <AuthorizeView>
       <Authorized>
         @{
-          var userId = context.User.FindFirst(ClaimTypes.NameIdentifier);
+          var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
           var userName = context.User.Identity?.Name ?? "User";
         }
         <MudNavLink Href="profile">@userName Profile</MudNavLink>
-        @if (!string.IsNullOrEmpty(userId?.Value))
+        @if (!string.IsNullOrEmpty(userId))
         {
           <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
         }

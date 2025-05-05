@@ -15,7 +15,6 @@
     <AuthorizeView>
       <Authorized>
         @{
-          var userId = context.User.FindFirst(ClaimTypes.NameIdentifier);
           var userName = context.User.Identity?.Name ?? "User";
         }
         <MudText Typo="Typo.h5" Align="Align.Center">Welcome back @userName</MudText>

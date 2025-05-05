@@ -10,6 +10,9 @@ using MudBlazor.Services;
 using Banko.Client.Services.Account;
 using Banko.Client.Services.Auth;
 using Banko.Client.Helper;
+using System.Text.Json.Serialization;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -35,8 +38,14 @@ builder.Services.AddScoped<AccountStateService>();
 
 builder.Services.AddMudServices();
 
-var apiBaseAddress = builder.Configuration["API_BASE_URL"] ??
-  throw new InvalidOperationException("API Base Address is not configured.");
+var apiBaseAddress = builder.Configuration["API_BASE_URL"] ?? throw new InvalidOperationException("API Base Address is not configured.");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
+
+builder.Services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
+{
+  options.Converters.Add(new JsonStringEnumConverter());
+  options.PropertyNameCaseInsensitive = true;
+});
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<JsonSerializerOptions>>().Value);
 
 await builder.Build().RunAsync();

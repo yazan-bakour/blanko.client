@@ -22,14 +22,8 @@ namespace Banko.Client.Services.User
       _authHelper = authHelper;
     }
 
-    public async Task<UserRead?> GetCurrentUserProfileAsync()
+    public async Task<UserRead> GetCurrentUserProfileAsync()
     {
-      // Check if we have a valid authorization header
-      if (!await _authHelper.AuthorizationHeaderAsync())
-      {
-        return null; // Return null to indicate no authentication
-      }
-
       try
       {
         var response = await _httpClient.GetAsync($"{_baseUrl}/current");
@@ -40,17 +34,17 @@ namespace Banko.Client.Services.User
           {
             await _authHelper.ClearTokenAsync();
           }
-          return null; // Return null to indicate authentication failed
+          throw new UnauthorizedAccessException("Authentication failed.");
         }
 
         var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
-        return result; // Return the user data or null if deserialization failed
+        return result!;
       }
       catch (Exception ex)
       {
-        Console.Error.WriteLine($"Error fetching user profile: {ex.Message}");
-        // If any exception occurs during API call, return null
-        return null;
+        await Console.Error.WriteLineAsync($"Error fetching user profile: {ex.Message}");
+
+        return null!;
       }
     }
   }

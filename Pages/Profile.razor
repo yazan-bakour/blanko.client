@@ -13,7 +13,6 @@
 @inject AuthenticationStateProvider AuthStateProvider
 
 @attribute [Authorize]
-@implements IDisposable
 
 <PageTitle>Profile</PageTitle>
 
@@ -24,80 +23,26 @@
         <MudIcon Color="Color.Dark" Icon="@Icons.Custom.Uncategorized.Radioactive" Size="Size.Large" />
       </MudAvatar>
     </MudItem>
-    @if (user == null)
-    {
-      <MudAlert Severity="Severity.Error">Could not load profile data.</MudAlert>
-    }
-    else
-    {
-      <MudItem md="6">
-        <MudItem md="12">Id: @user.Id</MudItem>
-        <MudItem md="12">Name: @user.FullName</MudItem>
-        <MudItem md="12">Email: @user.Email</MudItem>
-        <MudItem md="12">Role: @user.Role</MudItem>
-        <MudItem md="12">Created At: @user.CreatedAt</MudItem>
-      </MudItem>
-    }
+    <AuthorizeView>
+      <Authorized>
+        @{
+          var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+          var userName = context.User.Identity?.Name ?? "User";
+          var email = context.User.FindFirst(ClaimTypes.Email)?.Value;
+          var role = context.User.FindFirst(ClaimTypes.Role)?.Value;
+          var createdAt = context.User.FindFirst(ClaimTypes.DateOfBirth)?.Value;
+        }
+        <MudItem md="6">
+          <MudItem md="12">Id: @userId</MudItem>
+          <MudItem md="12">Name: @userName</MudItem>
+          <MudItem md="12">Email: @email</MudItem>
+          <MudItem md="12">Role: @role</MudItem>
+          <MudItem md="12">Created At: @createdAt</MudItem>
+        </MudItem>
+      </Authorized>
+      <NotAuthorized>
+        <MudText>Could not load profile data.</MudText>
+      </NotAuthorized>
+    </AuthorizeView>
   </MudGrid>
 </MudCard>
-
-@code {
-  private UserData? user;
-
-  protected override async Task OnInitializedAsync()
-  {
-    UserState.OnUserStateChanged += HandleStateChange;
-    await LoadUserProfileAsync();
-  }
-
-  private async Task LoadUserProfileAsync()
-  {
-    LoadingService.IsLoading = true;
-    try
-    {
-      // First try to use UserState
-      if (UserState.CurrentUser?.User != null)
-      {
-        user = UserState.CurrentUser.User;
-      }
-      else
-      {
-        // Otherwise get it from auth state
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-
-        if (authState.User.Identity?.IsAuthenticated == true)
-        {
-          await UserState.LoadUserDataAsync();
-          user = UserState.CurrentUser?.User;
-        }
-      }
-
-      if (user == null)
-      {
-        Snackbar.Add("Unable to load profile. Please log in again.", Severity.Warning);
-      }
-    }
-    catch (Exception ex)
-    {
-      Snackbar.Add($"Error loading profile: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
-      LoadingService.IsLoading = false;
-    }
-  }
-
-  private void HandleStateChange()
-  {
-    InvokeAsync(async () =>
-    {
-      await LoadUserProfileAsync();
-      StateHasChanged();
-    });
-  }
-
-  public void Dispose()
-  {
-    UserState.OnUserStateChanged -= HandleStateChange;
-  }
-}

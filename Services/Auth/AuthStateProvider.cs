@@ -39,7 +39,6 @@ public class AuthStateProvider : AuthenticationStateProvider
   {
     await _authService.LoginAsync(loginModel);
     _userCache = null;
-    // add exception if login credential are invalid instead of unauthorized.
     NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
   }
   public async Task Register(UserRegister registerModel)
@@ -77,7 +76,7 @@ public class AuthStateProvider : AuthenticationStateProvider
               new Claim(ClaimTypes.Name, userInfo.User.FullName),
               new Claim(ClaimTypes.Email, userInfo.User.Email),
               new Claim(ClaimTypes.Role, userInfo.User?.Role.ToString() ?? ""),
-              new Claim(ClaimTypes.Role, userInfo.User?.CreatedAt.ToString() ?? ""),
+              new Claim(ClaimTypes.DateOfBirth, userInfo.User?.CreatedAt.ToString() ?? ""),
 
           };
           identity = new ClaimsIdentity(claims, "Server authentication");

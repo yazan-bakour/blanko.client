@@ -1,0 +1,53 @@
+@using Banko.Client.Models.Account
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+<MudDialog>
+  <TitleContent>
+    <MudText Typo="Typo.h6">Create New Account</MudText>
+  </TitleContent>
+  <DialogContent>
+    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0">
+      <MudNumericField @bind-Value="_model.Balance" Label="Initial Balance" Required="true"
+        For="@(() => _model.Balance)" Variant="Variant.Outlined" Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+      <MudSelect @bind-Value="_model.Type" Label="Account Type" Required="true" For="@(() => _model.Type)"
+        Variant="Variant.Outlined">
+        @foreach (AccountType type in Enum.GetValues(typeof(AccountType)))
+        {
+          <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
+        }
+      </MudSelect>
+    </MudForm>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Create</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+  [Parameter] public int UserId { get; set; }
+
+  private AccountCreate _model = new();
+  private MudForm? _form;
+  private bool _success;
+
+  protected override void OnInitialized()
+  {
+    _model.UserId = UserId;
+    _model.Type = AccountType.Savings;
+  }
+
+  private async Task Submit()
+  {
+    await _form!.Validate();
+    if (_success)
+    {
+      MudDialog.Close(DialogResult.Ok(_model));
+    }
+  }
+
+  void Cancel() => MudDialog.Cancel();
+}
