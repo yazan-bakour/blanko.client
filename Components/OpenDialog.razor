@@ -1,0 +1,81 @@
+@namespace Banko.Client.Components
+
+@using Microsoft.AspNetCore.Components.Web
+@using System.Threading.Tasks
+@using MudBlazor
+@using System
+
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject LoadingService LoadingService
+
+@code {
+  /// <summary>
+  /// Opens a dialog of type TComponent and processes the result using the provided callbacks.
+  /// </summary>
+  /// <typeparam name="TComponent">The type of dialog component to open</typeparam>
+  /// <typeparam name="TResult">The expected result data type</typeparam>
+  /// <param name="title">Title of the dialog</param>
+  /// <param name="parameters">Parameters to pass to the dialog</param>
+  /// <param name="options">Dialog options</param>
+  /// <param name="onSuccess">Action to perform if dialog returns a result successfully</param>
+  /// <param name="successMessage">Message to show on success (null to skip)</param>
+  /// <param name="additionalActions">Optional additional actions to perform after success</param>
+  /// <returns>The dialog result or null if canceled</returns>
+  public async Task<TResult?> OpenDialogAsync<TComponent, TResult>(
+  string title,
+  DialogParameters<TComponent>? parameters = null,
+  DialogOptions? options = null,
+  Func<TResult, Task>? onSuccess = null,
+  string? successMessage = null,
+  Func<Task>? additionalActions = null) where TComponent : ComponentBase
+  {
+    parameters ??= new DialogParameters<TComponent>();
+    options ??= new DialogOptions
+    {
+      CloseOnEscapeKey = true,
+      MaxWidth = MaxWidth.Small,
+      FullWidth = true
+    };
+
+    // Show the dialog
+    var dialog = await DialogService.ShowAsync<TComponent>(title, parameters, options);
+    var result = await dialog.Result;
+
+    if (result != null && result.Canceled)
+      return default;
+
+    // If we got a result of the expected type
+    if (result != null && result.Data is TResult data)
+    {
+      LoadingService.IsLoading = true;
+      try
+      {
+        // Execute the main action if provided
+        if (onSuccess != null)
+          await onSuccess(data);
+
+        // Show success message if provided
+        if (!string.IsNullOrEmpty(successMessage))
+          Snackbar.Add(successMessage, Severity.Success);
+
+        // Execute additional actions if provided
+        if (additionalActions != null)
+          await additionalActions();
+
+        return data;
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add(ex.Message, Severity.Error);
+        return default;
+      }
+      finally
+      {
+        LoadingService.IsLoading = false;
+      }
+    }
+
+    return default;
+  }
+}

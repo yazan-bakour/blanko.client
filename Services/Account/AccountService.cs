@@ -4,7 +4,12 @@ using Banko.Client.Helper;
 using System.Text.Json;
 
 namespace Banko.Client.Services.Account;
-public class AccountService(HttpClient httpClient, IConfiguration configuration, AuthHelper authHelper, JsonSerializerOptions jsonSerializerOptions) : IAccountService
+public class AccountService(
+  HttpClient httpClient,
+  IConfiguration configuration,
+  AuthHelper authHelper,
+  JsonSerializerOptions jsonSerializerOptions,
+  ErrorService errorService) : IAccountService
 {
   private readonly string _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/accounts";
 
@@ -22,7 +27,10 @@ public class AccountService(HttpClient httpClient, IConfiguration configuration,
     {
       await authHelper.AuthorizationHeaderAsync();
       var response = await httpClient.PostAsJsonAsync($"{_baseUrl}/create", accountCreate, jsonSerializerOptions);
-      response.EnsureSuccessStatusCode();
+      if (!response.IsSuccessStatusCode)
+      {
+        await errorService.HandleHttpResponseErrorAsync(response);
+      }
       var createdAccount = await response.Content.ReadFromJsonAsync<AccountRead>(jsonSerializerOptions) ?? throw new InvalidOperationException("API did not return the created account details.");
       return createdAccount;
     }

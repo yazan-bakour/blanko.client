@@ -1,5 +1,6 @@
 ﻿@page "/account/{UserId:int}"
 
+@using Banko.Client.Components
 @using Banko.Client.Models.Account
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Services
@@ -17,6 +18,7 @@
 @implements IDisposable
 
 <PageTitle>Account</PageTitle>
+<OpenDialog @ref="dialog" />
 
 @if (LoadingService.IsLoading)
 {
@@ -100,86 +102,61 @@ else
 
 @code {
   [Parameter]
-  public int UserId { get; set; }
+  public int userId { get; set; }
   private AccountRead[]? accounts => AccountState.CurrentAccounts;
-
+  private OpenDialog? dialog;
   private async Task OpenCreateDialog()
   {
-    var parameters = new DialogParameters<CreateAccountDialog> { { x => x.UserId, UserId } };
-    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+    if (dialog == null) return;
+    var parameters = new DialogParameters<CreateAccountDialog> { { x => x.UserId, userId } };
 
-    var dialog = await DialogService.ShowAsync<CreateAccountDialog>("Create New Account", parameters, options);
-    var result = await dialog.Result;
-
-    if (!result.Canceled && result.Data is AccountCreate model)
-    {
-      LoadingService.IsLoading = true;
-      StateHasChanged();
-      try
-      {
-        await AccountState.CreateAccount(model);
-        Snackbar.Add("Account created successfully!", Severity.Success);
-      }
-      catch (Exception ex)
-      {
-        Snackbar.Add($"Error creating account: {ex.Message}", Severity.Error);
-      }
-      finally
-      {
-        LoadingService.IsLoading = false;
-        StateHasChanged();
-      }
-    }
+    await dialog.OpenDialogAsync<CreateAccountDialog, AccountCreate>(
+    title: "Create New Account",
+    parameters: parameters,
+    onSuccess: async (model) => await AccountState.CreateAccount(model),
+    successMessage: "Account created successfully!"
+    );
   }
+
   private async Task OpenCreateTransactionDialog(AccountRead sourceAccount)
   {
+    if (dialog == null) return;
+
     var parameters = new DialogParameters<CreateTransactionDialog>
 {
-{nameof(CreateTransactionDialog.PreSelectedSourceAccountNumber), sourceAccount.AccountNumber}
+{ nameof(CreateTransactionDialog.PreSelectedSourceAccountNumber), sourceAccount.AccountNumber }
 };
-    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
 
-    var dialog = await DialogService.ShowAsync<CreateTransactionDialog>("Create New Transaction", parameters, options);
-    var result = await dialog.Result;
-
-    if (!result.Canceled && result.Data is TransactionCreate model)
+    await dialog.OpenDialogAsync<CreateTransactionDialog, TransactionCreate>(
+    title: "Create New Transaction",
+    parameters: parameters,
+    onSuccess: async (model) => await TransactionState.CreateTransaction(model),
+    successMessage: "Transaction created successfully!",
+    additionalActions: async () =>
     {
-      LoadingService.IsLoading = true;
-      StateHasChanged();
-      try
-      {
-        await TransactionState.CreateTransaction(model);
-        Snackbar.Add("Transaction created successfully!", Severity.Success);
-        await LoadAccountDataAsync(true);
-        await TransactionState.InitializeTransactionStateAsync(true);
-      }
-      catch (Exception ex)
-      {
-        Snackbar.Add(ex.Message, Severity.Error);
-      }
-      finally
-      {
-        LoadingService.IsLoading = false;
-        StateHasChanged();
-      }
+      await LoadAccountDataAsync(true);
+      await TransactionState.InitializeTransactionStateAsync(true);
     }
+    );
   }
 
   protected override void OnInitialized()
   {
     AccountState.OnAccountStateChanged += HandleStateChange;
   }
+
   protected override async Task OnParametersSetAsync()
   {
     await LoadAccountDataAsync(false);
   }
+
   private async Task LoadAccountDataAsync(bool forceRefresh = false)
   {
     if (LoadingService.IsLoading && !forceRefresh) return;
     LoadingService.IsLoading = true;
     try
     {
-      await AccountState.InitializeAccountStateAsync(UserId, forceRefresh);
+      await AccountState.InitializeAccountStateAsync(userId, forceRefresh);
     }
     catch (Exception ex)
     {
@@ -194,18 +171,22 @@ else
       }
     }
   }
+
   private void HandleStateChange()
   {
     InvokeAsync(StateHasChanged);
   }
+
   public void Dispose()
   {
     AccountState.OnAccountStateChanged -= HandleStateChange;
   }
+
   private void HandleBulkUpdate(AccountRead account)
   {
     Snackbar.Add($"Bulk Update for account {account.AccountNumber} coming soon!", Severity.Info);
   }
+
   private Color GetAccountTypeColor(AccountType type) => type switch
   {
     AccountType.Checking => Color.Primary,

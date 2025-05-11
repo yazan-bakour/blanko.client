@@ -26,7 +26,7 @@ namespace Banko.Client.Services
           {
             errorMessages.AppendLine(problemDetails.Message);
           }
-          if (problemDetails.HasErrors())
+          if (problemDetails != null && problemDetails.HasErrors())
           {
             // Try dictionary format first (validation problem details)
             var errorsDictionary = problemDetails.GetErrorsAsDictionary();
@@ -44,7 +44,7 @@ namespace Banko.Client.Services
           else
           {
             // Try array format
-            var errorsArray = problemDetails.GetErrorsAsArray();
+            var errorsArray = problemDetails?.GetErrorsAsArray();
             if (errorsArray != null)
             {
               foreach (var error in errorsArray)

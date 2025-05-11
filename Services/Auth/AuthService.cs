@@ -11,7 +11,8 @@ public class AuthService(
   IConfiguration configuration,
   ILocalStorageService localStorage,
   ICacheValidator<UserRead> cacheValidator,
-  AuthHelper authHelper) : IAuthService
+  AuthHelper authHelper,
+  ErrorService errorService) : IAuthService
 {
   private readonly string _baseUrl = $"{configuration["API_HTTP_BASE_URL"]}/api/users";
   private readonly JsonSerializerOptions _jsonOptions = new()
@@ -24,7 +25,10 @@ public class AuthService(
     try
     {
       var response = await httpClient.PostAsJsonAsync($"{_baseUrl}/login", loginModel);
-      response.EnsureSuccessStatusCode();
+      if (!response.IsSuccessStatusCode)
+      {
+        await errorService.HandleHttpResponseErrorAsync(response);
+      }
 
       var result = await response.Content.ReadFromJsonAsync<UserRead>(_jsonOptions);
 
@@ -37,6 +41,12 @@ public class AuthService(
       httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
       cacheValidator.UpdateCache(true, result);
     }
+    catch (HttpRequestException)
+    {
+      await authHelper.ClearTokenAsync();
+      cacheValidator.UpdateCache(false, null);
+      throw;
+    }
     catch (Exception ex)
     {
       await authHelper.ClearTokenAsync();
@@ -45,6 +55,7 @@ public class AuthService(
       throw;
     }
   }
+
   public async Task<UserRead> UserInfoAsync()
   {
     var response = await httpClient.GetFromJsonAsync<UserRead>($"{_baseUrl}/current") ?? throw new InvalidOperationException("Received null response from user endpoint.");
@@ -56,11 +67,19 @@ public class AuthService(
     try
     {
       var response = await httpClient.PostAsJsonAsync($"{_baseUrl}/register", registerModel);
-      response.EnsureSuccessStatusCode();
+
+      if (!response.IsSuccessStatusCode)
+      {
+        await errorService.HandleHttpResponseErrorAsync(response);
+      }
     }
-    catch (HttpRequestException httpEx)
+    catch (HttpRequestException)
     {
-      throw new HttpRequestException($"Registration failed. Status: {httpEx.StatusCode}", httpEx);
+      throw;
+    }
+    catch (Exception ex)
+    {
+      throw new HttpRequestException($"Registration failed: {ex.Message}", ex);
     }
   }
 
