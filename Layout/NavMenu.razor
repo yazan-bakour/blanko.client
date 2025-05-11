@@ -27,14 +27,11 @@
           var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
           var userName = context.User.Identity?.Name ?? "User";
         }
-        <MudNavLink Href="profile">@userName Profile</MudNavLink>
-        @if (!string.IsNullOrEmpty(userId))
-        {
-          <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
-        }
         <MudNavLink Href="dashboard">Dashboard</MudNavLink>
-        <MudNavLink Href="funds">Funds</MudNavLink>
+        <MudNavLink Href="profile">Profile</MudNavLink>
+        <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
         <MudNavLink Href="transactions">Transactions</MudNavLink>
+        <MudNavLink Href="funds">Funds</MudNavLink>
         <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink>
       </Authorized>
       <NotAuthorized>

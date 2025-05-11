@@ -37,14 +37,14 @@ builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<UserStateService>();
 builder.Services.AddScoped<AccountStateService>();
 builder.Services.AddScoped<TransactionStateService>();
-
+builder.Services.AddScoped<ErrorService>();
 
 builder.Services.AddMudServices();
 
 var apiBaseAddress = builder.Configuration["API_BASE_URL"] ?? throw new InvalidOperationException("API Base Address is not configured.");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });
 
-builder.Services.Configure<System.Text.Json.JsonSerializerOptions>(options =>
+builder.Services.Configure<JsonSerializerOptions>(options =>
 {
   options.Converters.Add(new JsonStringEnumConverter());
   options.PropertyNameCaseInsensitive = true;

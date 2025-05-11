@@ -8,9 +8,9 @@ namespace Banko.Client.Services.Transaction
     public TransactionRead[]? CurrentTransactions => cacheValidator.Data;
     public event Action? OnTransactionStateChanged;
 
-    public async Task InitializeTransactionStateAsync()
+    public async Task InitializeTransactionStateAsync(bool forceRefresh = false)
     {
-      if (cacheValidator.IsInitialized)
+      if (!forceRefresh && cacheValidator.IsInitialized)
       {
         return;
       }
@@ -19,7 +19,7 @@ namespace Banko.Client.Services.Transaction
 
         var TransactionsData = await TransactionService.GetAllTransactionsAsync();
         cacheValidator.UpdateCache(true, TransactionsData);
-        NotifyUserStateChanged();
+        NotifyTransactionStateChanged();
       }
       catch
       {
@@ -28,26 +28,25 @@ namespace Banko.Client.Services.Transaction
       }
     }
 
-    // public async Task CreateTransaction(TransactionCreate TransactionCreate)
-    // {
-    //   var previousTransactions = cacheValidator.Data?.ToArray();
-    //   try
-    //   {
-    //     var newTransaction = await TransactionService.CreateTransactionAsync(TransactionCreate);
-    //     var currentList = previousTransactions?.ToList() ?? new List<TransactionRead>();
-    //     currentList.Add(newTransaction);
-    //     cachedUserId = TransactionCreate.UserId;
-    //     cacheValidator.UpdateCache(true, currentList.ToArray());
-    //     NotifyUserStateChanged();
-    //   }
-    //   catch (Exception ex)
-    //   {
-    //     Console.WriteLine($"TransactionStateService: Error creating new Transactions for UserId : {ex.Message}");
-    //     throw;
-    //   }
-    // }
+    public async Task CreateTransaction(TransactionCreate TransactionCreate)
+    {
+      var previousTransactions = cacheValidator.Data?.ToArray();
+      try
+      {
+        var newTransaction = await TransactionService.CreateTransactionAsync(TransactionCreate);
+        var currentList = previousTransactions?.ToList() ?? new List<TransactionRead>();
+        currentList.Add(newTransaction);
+        cacheValidator.UpdateCache(true, currentList.ToArray());
+        NotifyTransactionStateChanged();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex.Message);
+        throw;
+      }
+    }
 
-    private void NotifyUserStateChanged()
+    private void NotifyTransactionStateChanged()
     {
       OnTransactionStateChanged?.Invoke();
     }

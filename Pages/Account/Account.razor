@@ -1,12 +1,16 @@
 ﻿@page "/account/{UserId:int}"
 
 @using Banko.Client.Models.Account
+@using Banko.Client.Models.Transaction
 @using Banko.Client.Services
 @using Banko.Client.Services.Account
+@using Banko.Client.Services.Transaction
+@using Microsoft.AspNetCore.Components.Web
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject AccountStateService AccountState
+@inject TransactionStateService TransactionState
 @inject IDialogService DialogService
 
 @attribute [Authorize]
@@ -78,8 +82,12 @@ else
               </MudItem>
             }
             <MudItem xs="12" Class="d-flex justify-end mt-4">
+              <MudButton StartIcon="@Icons.Material.Filled.EditNote" Color="Color.Secondary"
+                OnClick="@(() => HandleBulkUpdate(account))">
+                Bulk Update
+              </MudButton>
               <MudButton StartIcon="@Icons.Material.Filled.Payment" Color="Color.Primary"
-                OnClick="@(() => HandleTransaction(account))">
+                OnClick="@(() => OpenCreateTransactionDialog(account))">
                 New Transaction
               </MudButton>
             </MudItem>
@@ -103,7 +111,7 @@ else
     var dialog = await DialogService.ShowAsync<CreateAccountDialog>("Create New Account", parameters, options);
     var result = await dialog.Result;
 
-    if (result!.Canceled && result.Data is AccountCreate model)
+    if (!result.Canceled && result.Data is AccountCreate model)
     {
       LoadingService.IsLoading = true;
       StateHasChanged();
@@ -123,6 +131,39 @@ else
       }
     }
   }
+  private async Task OpenCreateTransactionDialog(AccountRead sourceAccount)
+  {
+    var parameters = new DialogParameters<CreateTransactionDialog>
+{
+{nameof(CreateTransactionDialog.PreSelectedSourceAccountNumber), sourceAccount.AccountNumber}
+};
+    var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+
+    var dialog = await DialogService.ShowAsync<CreateTransactionDialog>("Create New Transaction", parameters, options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled && result.Data is TransactionCreate model)
+    {
+      LoadingService.IsLoading = true;
+      StateHasChanged();
+      try
+      {
+        await TransactionState.CreateTransaction(model);
+        Snackbar.Add("Transaction created successfully!", Severity.Success);
+        await LoadAccountDataAsync(true);
+        await TransactionState.InitializeTransactionStateAsync(true);
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add(ex.Message, Severity.Error);
+      }
+      finally
+      {
+        LoadingService.IsLoading = false;
+        StateHasChanged();
+      }
+    }
+  }
 
   protected override void OnInitialized()
   {
@@ -130,14 +171,15 @@ else
   }
   protected override async Task OnParametersSetAsync()
   {
-    await LoadAccountDataAsync();
+    await LoadAccountDataAsync(false);
   }
-  private async Task LoadAccountDataAsync()
+  private async Task LoadAccountDataAsync(bool forceRefresh = false)
   {
+    if (LoadingService.IsLoading && !forceRefresh) return;
     LoadingService.IsLoading = true;
     try
     {
-      await AccountState.InitializeAccountStateAsync(UserId);
+      await AccountState.InitializeAccountStateAsync(UserId, forceRefresh);
     }
     catch (Exception ex)
     {
@@ -146,7 +188,10 @@ else
     finally
     {
       LoadingService.IsLoading = false;
-      StateHasChanged();
+      if (forceRefresh)
+      {
+        StateHasChanged();
+      }
     }
   }
   private void HandleStateChange()
@@ -157,13 +202,10 @@ else
   {
     AccountState.OnAccountStateChanged -= HandleStateChange;
   }
-
-  private void HandleTransaction(AccountRead account)
+  private void HandleBulkUpdate(AccountRead account)
   {
-    // TODO: Implement transaction handling
-    Snackbar.Add("Transaction feature coming soon!", Severity.Info);
+    Snackbar.Add($"Bulk Update for account {account.AccountNumber} coming soon!", Severity.Info);
   }
-
   private Color GetAccountTypeColor(AccountType type) => type switch
   {
     AccountType.Checking => Color.Primary,

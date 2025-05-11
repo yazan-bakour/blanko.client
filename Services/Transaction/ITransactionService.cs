@@ -5,6 +5,6 @@ namespace Banko.Client.Services.Transaction
   public interface ITransactionService
   {
     Task<TransactionRead[]> GetAllTransactionsAsync();
-    // Task<TransactionRead> CreateTransactionAsync(TransactionCreate TransactionCreate);
+    Task<TransactionRead> CreateTransactionAsync(TransactionCreate TransactionCreate);
   }
 }

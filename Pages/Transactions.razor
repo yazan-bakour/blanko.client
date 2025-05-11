@@ -12,8 +12,6 @@
 
 @attribute [Authorize]
 @implements IDisposable
-@attribute [Authorize]
-@inject HttpClient Http
 
 <PageTitle>Transactions</PageTitle>
 
@@ -27,6 +25,7 @@ else if (!transactions?.Any() ?? true)
   <MudAlert Severity="Severity.Info" Class="mt-4">No Transactions found for this user. Click 'Create New Transaction' to
     add one.
   </MudAlert>
+  //Add new transaction button
 }
 else
 {
@@ -91,14 +90,12 @@ else
   @* public int transactionId { get; set; } *@
   private TransactionRead[]? transactions => TransactionState.CurrentTransactions;
 
-  protected override void OnInitialized()
+  protected override async Task OnInitializedAsync()
   {
     TransactionState.OnTransactionStateChanged += HandleStateChange;
-  }
-  protected override async Task OnParametersSetAsync()
-  {
     await LoadTransactionDataAsync();
   }
+
   private async Task LoadTransactionDataAsync()
   {
     LoadingService.IsLoading = true;
@@ -109,7 +106,7 @@ else
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Error loading Transactions: {ex.Message}", Severity.Error);
+      Snackbar.Add(ex.Message, Severity.Error);
     }
     finally
     {

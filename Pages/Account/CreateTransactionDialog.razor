@@ -1,0 +1,77 @@
+@using Banko.Client.Models.Transaction
+@using Banko.Client.Models.Account // For AccountRead if needed for dropdowns
+@using System.ComponentModel.DataAnnotations
+@using MudBlazor
+
+<MudDialog>
+  <TitleContent>
+    <MudText Typo="Typo.h6">Create New Transaction</MudText>
+  </TitleContent>
+  <DialogContent>
+    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0">
+      <MudTextField @bind-Value="_model.SourceAccountNumber" Label="From Account Number" Required="true"
+        For="@(() => _model.SourceAccountNumber)" Variant="Variant.Outlined" ReadOnly="true" />
+
+      <MudTextField @bind-Value="_model.DestinationAccountNumber" Label="To Account Number" Required="true"
+        For="@(() => _model.DestinationAccountNumber)" Variant="Variant.Outlined" />
+
+      <MudSelect @bind-Value="_model.Type" Label="Transaction Type" Required="true" For="@(() => _model.Type)"
+        Variant="Variant.Outlined">
+        @foreach (TransactionType type in Enum.GetValues(typeof(TransactionType)))
+        {
+          <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
+        }
+      </MudSelect>
+
+      <MudNumericField T="decimal" @bind-Value="_model.Amount" Label="Amount" Required="true"
+        For="@(() => _model.Amount)" Variant="Variant.Outlined" Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+
+      <MudSelect @bind-Value="_model.PaymentMethod" Label="Payment Method" Required="true"
+        For="@(() => _model.PaymentMethod)" Variant="Variant.Outlined">
+        @foreach (PaymentMethod method in Enum.GetValues(typeof(PaymentMethod)))
+        {
+          <MudSelectItem Value="@method">@method.ToString()</MudSelectItem>
+        }
+      </MudSelect>
+
+      <MudTextField @bind-Value="_model.Description" Label="Description (Optional)" Lines="3"
+        For="@(() => _model.Description)" Variant="Variant.Outlined" />
+    </MudForm>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Create Transaction</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+  [Parameter] public string? PreSelectedSourceAccountNumber { get; set; } // To pre-fill the source account
+
+  private TransactionCreate _model = new();
+  private MudForm? _form;
+  private bool _success;
+
+  protected override void OnInitialized()
+  {
+    if (!string.IsNullOrWhiteSpace(PreSelectedSourceAccountNumber))
+    {
+      _model.SourceAccountNumber = PreSelectedSourceAccountNumber;
+    }
+    _model.Type = TransactionType.Transfer; // Example default
+    _model.PaymentMethod = PaymentMethod.DebitCard; // Example default
+  }
+
+  private async Task Submit()
+  {
+    await _form!.Validate();
+    if (_success)
+    {
+      MudDialog.Close(DialogResult.Ok(_model));
+    }
+  }
+
+  void Cancel() => MudDialog.Cancel();
+}
