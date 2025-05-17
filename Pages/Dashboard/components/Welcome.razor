@@ -1,0 +1,46 @@
+@using System.Globalization
+@using Banko.Client.Helper
+@using Banko.Client.Models.Transaction
+
+<MudPaper Elevation="2" Class="pa-4 mb-4" Style="height: 100%">
+  <MudGrid>
+    <MudItem xs="12">
+      <MudText Typo="Typo.h4">Welcome, @(name ?? "User")</MudText>
+      <MudText Typo="Typo.body1">@(CreatedAt)</MudText>
+    </MudItem>
+    <MudItem xs="12" Class="justify-center d-flex">
+      <MudChart ChartType="ChartType.Donut" Width="200px" Height="200px" InputData="@GetIncomeVsExpenseData()"
+        InputLabels='@(new string[] { "Income", "Expenses" })'>
+        <CustomGraphics>
+          <text class="donut-inner-text" x="50%" y="35%" dominant-baseline="middle" text-anchor="middle"
+            fill="var(--mud-palette-text-primary)" font-family="Helvetica" font-size="20">Cash Flow</text>
+          <text class="donut-inner-text" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+            fill="var(--mud-palette-text-primary)" font-family="Helvetica"
+            font-size="30">@CurrencyFormatter.FormatCurrency((decimal)GetIncomeVsExpenseData().Sum())</text>
+        </CustomGraphics>
+      </MudChart>
+    </MudItem>
+
+  </MudGrid>
+</MudPaper>
+
+@code {
+  [Parameter] public string? name { get; set; }
+  [Parameter] public DateTime? CreatedAt { get; set; }
+  [Parameter] public TransactionRead[]? transactions { get; set; }
+
+  private double[] GetIncomeVsExpenseData()
+  {
+    if (transactions == null || !transactions.Any()) return new double[] { 0, 0 };
+
+    decimal income = transactions
+    .Where(t => t.Type == TransactionType.Deposit || t.Type == TransactionType.Refund)
+    .Sum(t => t.Amount);
+
+    decimal expenses = transactions
+    .Where(t => t.Type == TransactionType.Withdrawal || t.Type == TransactionType.Payment)
+    .Sum(t => t.Amount);
+
+    return new double[] { (double)income, (double)expenses };
+  }
+}

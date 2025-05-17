@@ -1,0 +1,170 @@
+@using System.Transactions
+@using Banko.Client.Models.Account
+@using Banko.Client.Models.Transaction
+@using System.Globalization
+
+@inject LoadingService LoadingService
+@* Each bar on the X-axis corresponds to one of these months. 
+The stacked segments within that bar then show the total transaction amounts for different TransactionTypes, 
+aggregated across all the accounts provided to the component for that specific month. *@
+
+<MudPaper Elevation="2" Class="pa-4 rounded-lg" Style="min-height: 400px;">
+  <MudText Typo="Typo.h6" Class="mb-3">
+    <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Class="mr-2" />Transactions Activity Across All
+    Accounts
+  </MudText>
+  @if (accounts?.Any() ?? false)
+  {
+    @if (_stackedBarSeries.Any())
+    {
+      <MudChart ChartType="ChartType.StackedBar" ChartSeries="@_stackedBarSeries" XAxisLabels="@_stackedBarXAxisLabels"
+        ChartOptions="@_stackedBarOptions" Width="100%" Height="320px">
+      </MudChart>
+    }
+    else
+    {
+      <MudAlert Severity="Severity.Info" Class="mt-3">No transaction data for the current month to display for these
+        accounts.</MudAlert>
+    }
+  }
+  else
+  {
+    <MudAlert Severity="Severity.Info" Class="mt-3">No accounts available to display activity.</MudAlert>
+  }
+</MudPaper>
+
+
+@code {
+  [Parameter] public IReadOnlyList<AccountRead>? accounts { get; set; }
+  [Parameter] public IReadOnlyList<TransactionRead>? transactions { get; set; }
+  private List<ChartSeries> _stackedBarSeries = new List<ChartSeries>();
+  private string[] _stackedBarXAxisLabels = { "Last Month", "This Month" };
+  private ChartOptions _stackedBarOptions = new ChartOptions()
+  {
+    ShowLegend = true,
+    ChartPalette = new string[] {
+Colors.Green.Default,
+Colors.Red.Default,
+Colors.Orange.Default,
+Colors.Blue.Default,
+Colors.Purple.Default
+},
+    YAxisFormat = "C2"
+  };
+
+  protected override void OnParametersSet()
+  {
+    base.OnParametersSet();
+    PrepareStackedBarData(); // Call this when parameters are set or change
+  }
+
+  private double GetTransactionSumForAccountByType(
+  IEnumerable<TransactionRead> transactionsForMonth,
+  IReadOnlyList<AccountRead> userAccounts,
+  TransactionType transactionType)
+  {
+    if (userAccounts == null || !userAccounts.Any()) return 0;
+    var userAccountNumbers = userAccounts.Select(a => a.AccountNumber).ToHashSet();
+
+    switch (transactionType)
+    {
+      case TransactionType.Deposit:
+        return transactionsForMonth
+        .Where(t => t.Type == transactionType &&
+        (userAccountNumbers.Contains(t.SourceAccountNumber!) ||
+        userAccountNumbers.Contains(t.DestinationAccountNumber!)))
+        .Sum(t => (double)Math.Abs(t.Amount));
+      case TransactionType.Refund:
+        return transactionsForMonth
+        .Where(t => t.Type == transactionType &&
+        (userAccountNumbers.Contains(t.SourceAccountNumber!) ||
+        userAccountNumbers.Contains(t.DestinationAccountNumber!)))
+        .Sum(t => (double)Math.Abs(t.Amount));
+      case TransactionType.Interest:
+        return transactionsForMonth
+        .Where(t => t.Type == transactionType &&
+        (userAccountNumbers.Contains(t.SourceAccountNumber!) ||
+        userAccountNumbers.Contains(t.DestinationAccountNumber!)))
+        .Sum(t => (double)Math.Abs(t.Amount));
+
+      case TransactionType.Payment:
+        // case TransactionType.Withdrawal: // If you have a Withdrawal type
+        return transactionsForMonth
+        .Where(t => t.Type == transactionType &&
+        (userAccountNumbers.Contains(t.SourceAccountNumber!) ||
+        userAccountNumbers.Contains(t.DestinationAccountNumber!)))
+        .Sum(t => (double)Math.Abs(t.Amount));
+
+      case TransactionType.Transfer:
+        return transactionsForMonth
+        .Where(t => t.Type == transactionType &&
+        (userAccountNumbers.Contains(t.SourceAccountNumber!) || userAccountNumbers.Contains(t.DestinationAccountNumber!)))
+        .Sum(t => (double)Math.Abs(t.Amount));
+
+      default:
+        return 0;
+    }
+  }
+  private void PrepareStackedBarData()
+  {
+    _stackedBarSeries.Clear();
+    var xAxisLabelsList = new List<string>();
+    var monthDateList = new List<DateTime>();
+
+    if (accounts == null || !accounts.Any() || transactions == null)
+    {
+      _stackedBarXAxisLabels = Array.Empty<string>();
+      return;
+    }
+
+    var now = DateTime.Now;
+    var currentMonth = now.Month;
+    var currentYear = now.Year;
+
+    var today = DateTime.Now;
+    for (int i = 5; i >= 0; i--) // Loop for the last 6 months (current month + 5 previous)
+    {
+      var month = today.AddMonths(-i);
+      monthDateList.Add(new DateTime(month.Year, month.Month, 1));
+      xAxisLabelsList.Add(month.ToString("MMM dd, yyyy", CultureInfo.InvariantCulture));
+    }
+    _stackedBarXAxisLabels = xAxisLabelsList.ToArray();
+
+    var sixMonthsAgo = monthDateList.First();
+    var relevantTransactions = transactions
+    .Where(t => t.TransactionDate >= sixMonthsAgo && t.TransactionDate <= today.AddDays(1).AddTicks(-1))
+    .ToList();
+
+    if (!relevantTransactions.Any())
+    {
+      return;
+    }
+
+    var typesToDisplay = Enum.GetValues<TransactionType>().ToList();
+    // Filter transactions for the current month
+    var currentMonthTransactions = transactions
+    .Where(t => t.TransactionDate.Month == currentMonth && t.TransactionDate.Year == currentYear)
+    .ToList();
+
+    foreach (var type in typesToDisplay)
+    {
+      var seriesData = new double[monthDateList.Count]; // 6 months
+      for (int monthIndex = 0; monthIndex < monthDateList.Count; monthIndex++)
+      {
+        var currentMonthStart = monthDateList[monthIndex];
+        var nextMonthStart = currentMonthStart.AddMonths(1);
+
+        var transactionsInThisSpecificMonth = relevantTransactions
+        .Where(t => t.TransactionDate >= currentMonthStart && t.TransactionDate < nextMonthStart)
+        .ToList();
+
+        seriesData[monthIndex] = GetTransactionSumForAccountByType(transactionsInThisSpecificMonth, accounts, type);
+      }
+
+      if (seriesData.Any(d => d > 0))
+      {
+        _stackedBarSeries.Add(new ChartSeries { Name = type.ToString(), Data = seriesData });
+      }
+    }
+  }
+}

@@ -1,0 +1,194 @@
+﻿@page "/"
+
+@using Banko.Client.Models.Account
+@using Banko.Client.Models.Transaction
+@using Banko.Client.Models.User
+@using Microsoft.AspNetCore.Authorization
+@using Banko.Client.Services.User
+@using Banko.Client.Services.Account
+@using Banko.Client.Services.Transaction
+@using System.Globalization
+@using Banko.Client.Pages.Dashboard.components
+
+@inject LoadingService LoadingService
+@inject UserStateService UserState
+@inject AccountStateService AccountState
+@inject TransactionStateService TransactionState
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<MudGrid>
+  <!-- User welcome and summary -->
+  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+    <Welcome name="@currentUser?.User.FullName" createdAt="@currentUser?.User.CreatedAt" transactions="transactions" />
+  </MudItem>
+
+  <!-- Accounts Summary -->
+  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+    <AccountSummery accounts="accounts" />
+  </MudItem>
+
+  <!-- Total Balance -->
+  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+    <MudGrid>
+      <MudItem xs="12">
+        <TotalBalance accounts="accounts" />
+      </MudItem>
+      <MudItem xs="12">
+        <AccountInsights accounts="accounts" />
+      </MudItem>
+    </MudGrid>
+  </MudItem>
+
+  <!-- Recent Activity -->
+  <MudItem xs="12" sm="6" md="4">
+    <MudGrid>
+      <MudItem Class="responsive-height-item">
+        <MudGrid>
+          <MudItem xs="12">
+            <RecentActivity transactions="transactions" />
+          </MudItem>
+          <MudItem xs="12">
+            <MonthlySpending transactions="transactions" />
+          </MudItem>
+        </MudGrid>
+      </MudItem>
+    </MudGrid>
+  </MudItem>
+
+  <!-- Recent Transactions Table -->
+  <MudItem xs="12" sm="8" Class="responsive-height-item">
+    <RecentTransactions transactions="transactions" />
+  </MudItem>
+
+  <!-- Stacked bar Chart -->
+  <MudItem xs="6">
+    <StackedBarChart transactions="transactions?.ToList()" accounts="accounts?.ToList()" />
+  </MudItem>
+
+  <!-- Upcoming -->
+  <MudItem xs="6">
+    <MudGrid>
+      <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 212px;">
+          <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbarConnectedNoInternet4" Class="mr-2" />
+            Status
+          </MudText>
+        </MudPaper>
+      </MudItem>
+      <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 212px;">
+          <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.BrowserUpdated" Class="mr-2" />
+            Updated at
+          </MudText>
+        </MudPaper>
+      </MudItem>
+    </MudGrid>
+  </MudItem>
+
+  <MudItem xs="12" sm="6" md="4">
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+  </MudItem>
+  <MudItem xs="12" sm="6" md="4">
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+  </MudItem>
+  <MudItem xs="12" sm="12" md="4">
+    <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;"></MudPaper>
+  </MudItem>
+</MudGrid>
+
+@code {
+  private UserRead? currentUser;
+  private AccountRead[]? accounts;
+  private TransactionRead[]? transactions;
+
+  private string[] GetAccountLabels()
+  {
+    if (accounts == null || !accounts.Any()) return Array.Empty<string>();
+    return accounts.Select(a => a.AccountNumber).ToArray();
+  }
+  protected override async Task OnInitializedAsync()
+  {
+    LoadingService.IsLoading = true;
+
+    try
+    {
+      // Subscribe to state changes
+      UserState.OnUserStateChanged += HandleUserStateChanged;
+      AccountState.OnAccountStateChanged += HandleAccountStateChanged;
+      TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
+
+      // Load all required data
+      await UserState.LoadUserDataAsync();
+      currentUser = UserState.CurrentUser;
+
+      // Only if we have a user ID, load accounts and transactions
+      if (currentUser != null)
+      {
+        await AccountState.InitializeAccountStateAsync(currentUser.User.Id);
+        accounts = AccountState.CurrentAccounts;
+
+        await TransactionState.InitializeTransactionStateAsync();
+        transactions = TransactionState.CurrentTransactions;
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
+  }
+
+  private void HandleUserStateChanged()
+  {
+    currentUser = UserState.CurrentUser;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void HandleAccountStateChanged()
+  {
+    accounts = AccountState.CurrentAccounts;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void HandleTransactionStateChanged()
+  {
+    transactions = TransactionState.CurrentTransactions;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private (double[] data, string[] labels) GetSpendingByCategoryData()
+  {
+    if (transactions == null || !transactions.Any()) return (Array.Empty<double>(), Array.Empty<string>());
+
+    var thisMonth = DateTime.Now.Month;
+    var thisYear = DateTime.Now.Year;
+
+    var spendingByCategory = transactions
+    .Where(t => t.TransactionDate.Month == thisMonth &&
+    t.TransactionDate.Year == thisYear &&
+    (t.Type == TransactionType.Withdrawal || t.Type == TransactionType.Payment))
+    .GroupBy(t => t.Type.ToString())
+    .Select(g => new { Category = g.Key, Amount = g.Sum(t => (double)t.Amount) })
+    .OrderByDescending(x => x.Amount)
+    .ToList();
+
+    return (spendingByCategory.Select(x => x.Amount).ToArray(),
+    spendingByCategory.Select(x => x.Category).ToArray());
+  }
+
+  public void Dispose()
+  {
+    // Unsubscribe from events
+    UserState.OnUserStateChanged -= HandleUserStateChanged;
+    AccountState.OnAccountStateChanged -= HandleAccountStateChanged;
+    TransactionState.OnTransactionStateChanged -= HandleTransactionStateChanged;
+  }
+}

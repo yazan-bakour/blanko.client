@@ -1,0 +1,38 @@
+@using Banko.Client.Models.Account
+
+<MudPaper Elevation="2" Class="pa-4 rounded-lg">
+  <MudText Typo="Typo.h6" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Class="mr-2" />Accounts
+  </MudText>
+
+  @if (accounts?.Length > 0)
+  {
+    <MudItem xs="12" Class="d-flex align-items-center">
+      <MudText Typo="Typo.h4" Class="mr-2">@accounts.Length</MudText>
+      <MudText Typo="Typo.body2">Total Accounts</MudText>
+    </MudItem>
+
+    <MudDivider Class="my-4" />
+
+    <MudList T="object" Dense="true" DisablePadding="true">
+      @foreach (var accountType in accounts.GroupBy(a => a.Type).OrderByDescending(g => g.Count()))
+      {
+        <MudListItem T="object">
+          <MudText>@accountType.Key: @accountType.Count()</MudText>
+        </MudListItem>
+      }
+    </MudList>
+  }
+  else
+  {
+    <MudAlert Severity="Severity.Info" Class="mt-3">No accounts yet</MudAlert>
+  }
+</MudPaper>
+@code {
+  [Parameter] public AccountRead[]? accounts { get; set; }
+
+  protected override void OnParametersSet()
+  {
+    base.OnParametersSet();
+  }
+}

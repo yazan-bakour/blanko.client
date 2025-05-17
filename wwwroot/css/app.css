@@ -58,54 +58,46 @@ h1:focus {
   color: white;
 }
 
-.blazor-error-boundary::after {
-  content: "An error has occurred.";
+.responsive-height-item {
+  height: auto; /* Default for xs (< 600px) */
 }
 
-.loading-progress {
-  position: relative;
-  display: block;
-  width: 8rem;
-  height: 8rem;
-  margin: 20vh auto 1rem auto;
+/* Small screens (sm: 600px to 959px) */
+@media (min-width: 600px) and (max-width: 959.95px) {
+  .responsive-height-item {
+    height: auto;
+  }
+  .responsive-height-item > div {
+    height: 100%;
+  }
 }
 
-.loading-progress circle {
-  fill: none;
-  stroke: #e0e0e0;
-  stroke-width: 0.6rem;
-  transform-origin: 50% 50%;
-  transform: rotate(-90deg);
+/* Medium screens (md: 960px to 1279px) */
+@media (min-width: 960px) and (max-width: 1279.95px) {
+  .responsive-height-item {
+    height: 530px;
+  }
+  .responsive-height-item > div {
+    height: 100%;
+  }
 }
 
-.loading-progress circle:last-child {
-  stroke: #1b6ec2;
-  stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-  transition: stroke-dasharray 0.05s ease-in-out;
+/* Large screens (lg: 1280px to 1919px) */
+@media (min-width: 1280px) {
+  .responsive-height-item {
+    height: 433px;
+  }
+  .responsive-height-item > div {
+    height: 100%;
+  }
 }
 
-.loading-progress-text {
-  position: absolute;
-  text-align: center;
-  font-weight: bold;
-  inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+/* Extra Large screens (xl: 1920px to 2559px) */
+@media (min-width: 1920px) and (max-width: 2559.95px) {
+  /* comingup */
 }
 
-.loading-progress-text:after {
-  content: var(--blazor-load-percentage-text, "Loading");
-}
-
-code {
-  color: #c02d76;
-}
-
-.form-floating > .form-control-plaintext::placeholder,
-.form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder,
-.form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Extra Extra Large screens (xxl: >= 2560px) */
+@media (min-width: 2560px) {
+  /* comingup */
 }

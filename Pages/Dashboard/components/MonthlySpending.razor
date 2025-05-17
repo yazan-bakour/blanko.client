@@ -1,0 +1,49 @@
+@using Banko.Client.Models.Transaction
+@using Banko.Client.Helper
+
+<MudPaper Elevation="2" Class="pa-4 rounded-lg">
+  <MudText Typo="Typo.h6" Class="mb-6">
+    <MudIcon Icon="@Icons.Material.Filled.TrendingDown" Class="mr-2" />Monthly Spending
+  </MudText>
+
+  @if (transactions?.Length > 0)
+  {
+    var thisMonth = DateTime.Now.Month;
+    var thisYear = DateTime.Now.Year;
+    var monthlyOutgoing = transactions
+    .Where(t => t.TransactionDate.Month == thisMonth &&
+    t.TransactionDate.Year == thisYear &&
+    (t.Type == TransactionType.Withdrawal || t.Type == TransactionType.Payment))
+    .Sum(t => t.Amount);
+
+    var prevMonth = thisMonth == 1 ? 12 : thisMonth - 1;
+    var prevYear = thisMonth == 1 ? thisYear - 1 : thisYear;
+    var prevMonthOutgoing = transactions
+    .Where(t => t.TransactionDate.Month == prevMonth &&
+    t.TransactionDate.Year == prevYear &&
+    (t.Type == TransactionType.Withdrawal || t.Type == TransactionType.Payment))
+    .Sum(t => t.Amount);
+
+    <MudGrid Justify="justification" Class="pa-0">
+      <MudItem xs="5">
+        <MudText Typo="Typo.body1">This Month</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Error">@CurrencyFormatter.FormatCurrency(monthlyOutgoing)</MudText>
+      </MudItem>
+      <MudDivider Vertical="true" FlexItem="true" Class="mx-2 mt-5" />
+      <MudItem xs="5">
+        <MudText Typo="Typo.body1">Last Month</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Error">@CurrencyFormatter.FormatCurrency(prevMonthOutgoing)</MudText>
+      </MudItem>
+    </MudGrid>
+    <MudDivider FlexItem="true" Class="mx-2 mt-5" />
+  }
+  else
+  {
+    <MudAlert Severity="Severity.Info" Class="mt-3">No spending data available</MudAlert>
+  }
+</MudPaper>
+
+@code {
+  Justify justification = Justify.SpaceBetween;
+  [Parameter] public TransactionRead[]? transactions { get; set; }
+}

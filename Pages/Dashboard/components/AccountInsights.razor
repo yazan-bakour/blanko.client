@@ -1,0 +1,40 @@
+@using Banko.Client.Models.Account
+@using Banko.Client.Helper
+
+<MudPaper Elevation="2" Class="pa-4 rounded-lg">
+  <MudText Typo="Typo.h6" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-2" />Account Insights
+  </MudText>
+
+  @if (accounts?.Length > 0)
+  {
+    <MudText Typo="Typo.body2">Average Balance: @CurrencyFormatter.FormatCurrency(accounts.Average(a => a.Balance))
+    </MudText>
+
+    @if (accounts.OrderBy(a => a.Balance).FirstOrDefault() is AccountRead lowestBalanceAccount && accounts.Length
+      > 1)
+    {
+      <MudText Typo="Typo.body2" Class="mt-1">Lowest Balance: @lowestBalanceAccount.AccountNumber
+        (@CurrencyFormatter.FormatCurrency(lowestBalanceAccount.Balance))</MudText>
+    }
+
+    @if (accounts.OrderByDescending(a => a.CreatedAt).FirstOrDefault() is AccountRead newestAccount)
+    {
+      <MudText Typo="Typo.body2" Class="mt-1">Newest Account: @newestAccount.AccountNumber</MudText>
+    }
+
+    @if (accounts.OrderByDescending(a => a.UpdatedAt).FirstOrDefault() is AccountRead lastUpdatedAccount)
+    {
+      <MudText Typo="Typo.body2" Class="mt-1">Last Activity: @lastUpdatedAccount.AccountNumber on
+        @lastUpdatedAccount.UpdatedAt.ToLocalTime().ToString("MMM dd, yyyy")</MudText>
+    }
+  }
+  else
+  {
+    <MudAlert Severity="Severity.Info" Class="mt-3">No additional account insights available.</MudAlert>
+  }
+</MudPaper>
+
+@code {
+  [Parameter] public AccountRead[]? accounts { get; set; }
+}

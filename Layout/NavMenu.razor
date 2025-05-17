@@ -20,14 +20,13 @@
     </AuthorizeView>
   </MudDrawerHeader>
   <MudNavMenu>
-    <MudNavLink Match="NavLinkMatch.All" Href="">Home</MudNavLink>
     <AuthorizeView>
       <Authorized>
         @{
           var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
           var userName = context.User.Identity?.Name ?? "User";
         }
-        <MudNavLink Href="dashboard">Dashboard</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.All">Dashboard</MudNavLink>
         <MudNavLink Href="profile">Profile</MudNavLink>
         <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
         <MudNavLink Href="transactions">Transactions</MudNavLink>

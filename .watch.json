@@ -1,15 +1,23 @@
 {
-  "$schema": "https://json.schemastore.org/watch",
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "hotReloadProfile": "blazorwasm",
   "watchOptions": {
-    "usePolling": false,
+    "usePolling": true,
+    "pollingInterval": 500,
     "excludeFiles": ["**/*.git/**", "**/bin/**", "**/obj/**"],
-    "excludeDirectories": ["bin", "obj", "node_modules"],
+    "excludeDirectories": ["bin", "obj", "node_modules", ".vs"],
     "watchFiles": [
       "**/*.razor",
       "**/*.razor.css",
       "**/*.css",
       "**/*.cs",
       "**/*.json"
-    ]
+    ],
+    "useStaticFileServer": true
+  },
+
+  "environmentVariables": {
+    "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.Watch.BrowserRefresh;Microsoft.WebTools.BrowserLink.Net",
+    "DOTNET_WATCH_RESTART_ON_RUDE_EDIT": "true"
   }
 }

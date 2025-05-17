@@ -1,0 +1,30 @@
+@using Banko.Client.Models.Account
+@using Banko.Client.Helper
+
+<MudPaper Elevation="2" Class="pa-4 rounded-lg">
+  <MudText Typo="Typo.h6" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.Euro" Class="mr-2" />Total Balance
+  </MudText>
+
+  @if (accounts?.Length > 0)
+  {
+    <MudText Typo="Typo.h3">@CurrencyFormatter.FormatCurrency(accounts.Sum(a => a.Balance))</MudText>
+    <MudText Typo="Typo.body2">Across all accounts</MudText>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.body2">Highest Balance:</MudText>
+    @if (accounts.OrderByDescending(a => a.Balance).FirstOrDefault() is AccountRead topAccount)
+    {
+      <MudText>@topAccount.AccountNumber: @CurrencyFormatter.FormatCurrency(topAccount.Balance)</MudText>
+    }
+  }
+  else
+  {
+    <MudAlert Severity="Severity.Info" Class="mt-3">No balance information</MudAlert>
+  }
+</MudPaper>
+
+@code {
+  [Parameter] public AccountRead[]? accounts { get; set; }
+}
