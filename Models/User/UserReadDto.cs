@@ -47,5 +47,4 @@ namespace Banko.Client.Models.User
     public string? UniqueId { get; set; }
     public string? ProfilePictureDisplay { get; set; }
   }
-
 }
