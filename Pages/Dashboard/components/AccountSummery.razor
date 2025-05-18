@@ -14,7 +14,7 @@
 
     <MudDivider Class="my-4" />
 
-    <MudList T="object" Dense="true" DisablePadding="true">
+    <MudList T="object" Dense="true" ReadOnly="true">
       @foreach (var accountType in accounts.GroupBy(a => a.Type).OrderByDescending(g => g.Count()))
       {
         <MudListItem T="object">

@@ -26,7 +26,7 @@
           var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
           var userName = context.User.Identity?.Name ?? "User";
         }
-        <MudNavLink Match="NavLinkMatch.All">Dashboard</MudNavLink>
+        <MudNavLink Match="NavLinkMatch.All" Href="/">Dashboard</MudNavLink>
         <MudNavLink Href="profile">Profile</MudNavLink>
         <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
         <MudNavLink Href="transactions">Transactions</MudNavLink>

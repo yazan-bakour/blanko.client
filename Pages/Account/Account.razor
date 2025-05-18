@@ -49,7 +49,7 @@ else
         <ChildContent>
           <MudGrid Class="justify-space-between">
             <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true">
+              <MudList T="string" Dense="true" ReadOnly="true">
                 <MudListItem Icon="@Icons.Material.Filled.Numbers">ID: @account.Id</MudListItem>
                 <MudListItem Icon="@Icons.Material.Filled.AccountBalance">Number: @account.AccountNumber</MudListItem>
                 <MudListItem Icon="@Icons.Material.Filled.Payment">Balance: @account.Balance.ToString("C2")</MudListItem>
@@ -61,7 +61,7 @@ else
               </MudList>
             </MudItem>
             <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true">
+              <MudList T="string" Dense="true" ReadOnly="true">
                 <MudListItem Icon="@Icons.Material.Filled.Percent">Interest: @account.InterestRate.ToString("P2")
                 </MudListItem>
                 <MudListItem Icon="@Icons.Material.Filled.ArrowDownward">Min Balance: @account.MinimumBalance.ToString("C2")

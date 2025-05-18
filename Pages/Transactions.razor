@@ -44,7 +44,7 @@ else
           <MudGrid Class="justify-space-between">
             @* Column 1: Core Transaction Details *@
             <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true">
+              <MudList T="string" Dense="true" ReadOnly="true">
                 <MudListItem Icon="@Icons.Material.Filled.ConfirmationNumber">Transaction #: @transaction.TransactionNumber
                 </MudListItem>
                 <MudListItem Icon="@Icons.Material.Filled.Payment">Amount: @transaction.Amount.ToString("C2")</MudListItem>
@@ -57,7 +57,7 @@ else
             </MudItem>
             @* Column 2: Account & Date Details *@
             <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true">
+              <MudList T="string" Dense="true" ReadOnly="true">
                 <MudListItem Icon="@Icons.Material.Filled.ArrowForward">From: @transaction.SourceName
                   (@transaction.SourceAccountNumber)</MudListItem>
                 <MudListItem Icon="@Icons.Material.Filled.ArrowBack">To: @transaction.RecipientName

@@ -1,0 +1,121 @@
+﻿@page "/profile"
+
+@using System
+@using Banko.Client.Services
+@using Banko.Client.Services.User
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Globalization
+@using Microsoft.JSInterop
+
+@inject UserStateService UserState
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IJSRuntime JSRuntime
+
+@attribute [Authorize]
+
+<PageTitle>Profile</PageTitle>
+
+<MudCard Elevation="25" Class="pa-4 w-100">
+  <MudGrid>
+    <AuthorizeView>
+      <Authorized>
+        @{
+          var user = context.User;
+          var email = user.FindFirst(ClaimTypes.Email)?.Value;
+          var role = user.FindFirst(ClaimTypes.Role)?.Value;
+
+          // Assuming custom claim types match your JSON keys or how you've mapped them
+          var fullName = user.FindFirst("fullName")?.Value ?? user.Identity?.Name; // Fallback to existing Name
+          var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value;
+          var lastName = user.FindFirst(ClaimTypes.Surname)?.Value;
+          var phoneNumber = user.FindFirst(ClaimTypes.MobilePhone)?.Value ?? user.FindFirst("phoneNumber")?.Value;
+          var address = user.FindFirst(ClaimTypes.StreetAddress)?.Value;
+          var city = user.FindFirst(ClaimTypes.Locality)?.Value;
+          var state = user.FindFirst(ClaimTypes.StateOrProvince)?.Value;
+          var zipCode = user.FindFirst(ClaimTypes.PostalCode)?.Value;
+          var country = user.FindFirst(ClaimTypes.Country)?.Value;
+          var dateOfBirthStr = user.FindFirst(ClaimTypes.DateOfBirth)?.Value;
+          var nationality = user.FindFirst("nationality")?.Value;
+          var gender = user.FindFirst(ClaimTypes.Gender)?.Value;
+          var uniqueId = user.FindFirst("uniqueId")?.Value;
+          var createdAtStr = user.FindFirst("createdAt")?.Value;
+          var profilePicture = user.FindFirst("profilePictureDisplay")?.Value ?? user.FindFirst("picture")?.Value;
+          string formattedDateOfBirth = "N/A";
+          // Log an object in the browser console
+          var claimsToLog = user.Claims.Select(c => new { ClaimType = c.Type, ClaimValue = c.Value }).ToList();
+          var identityName = user.Identity?.Name;
+          var isAuthenticated = user.Identity?.IsAuthenticated;
+
+          JSRuntime.InvokeVoidAsync("console.log", "%cUser (ClaimsPrincipal) Log:", "color: blue; font-weight: bold;", new {
+              IsAuthenticated = isAuthenticated,
+              IdentityName = identityName,
+              Claims = claimsToLog
+          });
+          // Log end
+          if (DateTime.TryParse(dateOfBirthStr, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var
+          dob))
+          {
+            formattedDateOfBirth = dob.ToLocalTime().ToString("MMMM dd, yyyy");
+          }
+
+          string formattedCreatedAt = "N/A";
+          if (DateTime.TryParse(createdAtStr, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var ca))
+          {
+            formattedCreatedAt = ca.ToLocalTime().ToString("MMMM dd, yyyy HH:mm");
+          }
+        }
+        <MudItem xs="12" sm="4" md="3" Class="d-flex flex-column align-center justify-start mt-2">
+          @if (!string.IsNullOrWhiteSpace(profilePicture))
+          {
+            <MudImage Src="@profilePicture" Alt="Mony the dog" Elevation="25" Class="rounded-lg" />
+          }
+          else
+          {
+            <MudAvatar Color="Color.Primary" Style="height:128px; width:128px; font-size:3rem;">
+              @if (!string.IsNullOrWhiteSpace(firstName))
+              {
+                @firstName.First()
+              }
+              else if (!string.IsNullOrWhiteSpace(fullName))
+              {
+                @fullName.First()
+              }
+            </MudAvatar>
+          }
+          <MudText Typo="Typo.body1" Class="mt-2">@uniqueId</MudText>
+          <MudText Typo="Typo.caption">Joined: @formattedCreatedAt</MudText>
+          
+        </MudItem>
+        <MudItem xs="12" sm="8" md="9">
+          <MudList T="string" Dense="true" ReadOnly="true">
+            <MudListSubheader>Account Information</MudListSubheader>
+            <MudListItem Icon="@Icons.Material.Filled.Fingerprint" Text="@($"User ID: {fullName ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Email" Text="@($"Email: {email ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.VerifiedUser" Text="@($"Role: {role ?? "N/A"}")" />
+
+            <MudListSubheader Class="mt-3">Personal Details</MudListSubheader>
+            <MudListItem Icon="@Icons.Material.Filled.Person" Text="@($"First Name: {firstName ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.PersonOutline" Text="@($"Last Name: {lastName ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Cake" Text="@($"Date of Birth: {formattedDateOfBirth}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Wc" Text="@($"Gender: {gender ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Flag" Text="@($"Nationality: {nationality ?? "N/A"}")" />
+
+            <MudListSubheader Class="mt-3">Contact Information</MudListSubheader>
+            <MudListItem Icon="@Icons.Material.Filled.Phone" Text="@($"Phone: {phoneNumber ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Home" Text="@($"Address: {address ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.LocationCity" Text="@($"City: {city ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Map" Text="@($"State: {state ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.LocalPostOffice" Text="@($"Zip Code: {zipCode ?? "N/A"}")" />
+            <MudListItem Icon="@Icons.Material.Filled.Public" Text="@($"Country: {country ?? "N/A"}")" />
+          </MudList>
+        </MudItem>
+      </Authorized>
+      <NotAuthorized>
+        <MudText>Could not load profile data.</MudText>
+      </NotAuthorized>
+    </AuthorizeView>
+  </MudGrid>
+</MudCard>

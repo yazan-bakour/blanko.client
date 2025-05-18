@@ -8,6 +8,12 @@ namespace Banko.Client.Models.User
     Customer,
     Support
   }
+  public enum UserGender
+  {
+    Male,
+    Female
+  }
+
   public class UserRead
   {
     public string Token { get; set; } = string.Empty;
@@ -22,5 +28,24 @@ namespace Banko.Client.Models.User
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public UserRole? Role { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public string? PhoneNumber { get; set; }
+    public string? Address { get; set; }
+    public string? City { get; set; }
+    public string? State { get; set; }
+    public string? ZipCode { get; set; }
+    public string? Country { get; set; }
+    public DateTime? DateOfBirth { get; set; }
+    public DateTime? LastLogin { get; set; }
+    public string? Nationality { get; set; }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public UserGender? Gender { get; set; }
+    public bool IsVerified { get; set; }
+    public string? UniqueId { get; set; }
+    public string? ProfilePictureDisplay { get; set; }
   }
+
 }

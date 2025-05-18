@@ -6,6 +6,7 @@ using Blazored.LocalStorage;
 using System.Net.Http.Headers;
 
 namespace Banko.Client.Services.Auth;
+
 public class AuthStateProvider : AuthenticationStateProvider
 {
   private readonly IAuthService _authService;
@@ -69,14 +70,29 @@ public class AuthStateProvider : AuthenticationStateProvider
 
         if (userInfo?.User != null)
         {
+          var user = userInfo.User;
           var claims = new List<Claim>
           {
-              new Claim(ClaimTypes.NameIdentifier, userInfo.User.Id.ToString()),
-              new Claim(ClaimTypes.Name, userInfo.User.FullName),
-              new Claim(ClaimTypes.Email, userInfo.User.Email),
-              new Claim(ClaimTypes.Role, userInfo.User?.Role.ToString() ?? ""),
-              new Claim(ClaimTypes.DateOfBirth, userInfo.User?.CreatedAt.ToString() ?? ""),
-
+              new (ClaimTypes.NameIdentifier, user.Id.ToString()),
+              new (ClaimTypes.Email, user.Email ?? string.Empty),
+              new (ClaimTypes.Name, user.FullName ?? string.Empty),
+              new (ClaimTypes.GivenName, user.FirstName ?? string.Empty),
+              new (ClaimTypes.Surname, user.LastName ?? string.Empty),
+              new (ClaimTypes.Role, user.Role?.ToString() ?? string.Empty),
+              new (ClaimTypes.DateOfBirth, user.DateOfBirth?.ToString("o") ?? string.Empty),
+              new (ClaimTypes.Gender, user.Gender?.ToString() ?? string.Empty),
+              new (ClaimTypes.MobilePhone, user.PhoneNumber ?? string.Empty),
+              new (ClaimTypes.StreetAddress, user.Address ?? string.Empty),
+              new (ClaimTypes.Locality, user.City ?? string.Empty),
+              new (ClaimTypes.StateOrProvince, user.State ?? string.Empty),
+              new (ClaimTypes.PostalCode, user.ZipCode ?? string.Empty),
+              new (ClaimTypes.Country, user.Country ?? string.Empty),
+              new ("uniqueId", user.UniqueId ?? string.Empty),
+              new ("nationality", user.Nationality ?? string.Empty),
+              new ("profilePictureDisplay", user.ProfilePictureDisplay ?? string.Empty),
+              new ("isVerified", user.IsVerified.ToString()),
+              new ("createdAt", user.CreatedAt?.ToString("o") ?? string.Empty),
+              new ("updatedAt", user.UpdatedAt.ToString("o") ?? string.Empty),
           };
           identity = new ClaimsIdentity(claims, "Server authentication");
           _cacheValidator.UpdateCache(true, userInfo);
