@@ -27,8 +27,9 @@
 else if (!accounts?.Any() ?? true)
 {
   <MudItem xs="12" Class="d-flex justify-content-end mb-3">
-    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Label="Create New Account"
-      OnClick="() => OpenCreateDialog()" />
+    <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add"
+      OnClick="() => OpenCreateDialog()">Create
+      New Account</MudButton>
   </MudItem>
   <MudAlert Severity="Severity.Info" Class="mt-4">No accounts found for this user. Click 'Create New Account' to add one.
   </MudAlert>
@@ -36,8 +37,10 @@ else if (!accounts?.Any() ?? true)
 
 else
 {
-  <MudItem xs="12" Class="d-flex justify-content-end mb-3">
-    <MudFab StartIcon="@Icons.Material.Filled.Add" Label="Create" OnClick="() => OpenCreateDialog()" />
+  <MudItem xs="12" Class="d-flex justify-content-start mb-3">
+    <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add"
+      OnClick="() => OpenCreateDialog()">Create
+    </MudButton>
   </MudItem>
 
   <MudExpansionPanels MultiExpansion="true">

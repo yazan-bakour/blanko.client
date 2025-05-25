@@ -117,16 +117,13 @@
 
     try
     {
-      // Subscribe to state changes
       UserState.OnUserStateChanged += HandleUserStateChanged;
       AccountState.OnAccountStateChanged += HandleAccountStateChanged;
       TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
 
-      // Load all required data
       await UserState.LoadUserDataAsync();
       currentUser = UserState.CurrentUser;
 
-      // Only if we have a user ID, load accounts and transactions
       if (currentUser != null)
       {
         await AccountState.InitializeAccountStateAsync(currentUser.User.Id);

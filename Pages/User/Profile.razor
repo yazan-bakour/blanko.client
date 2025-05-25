@@ -17,8 +17,7 @@
 
 <PageTitle>Profile</PageTitle>
 
-@* <LoadUserData OnDataLoaded="HandleUserDataLoaded" OnLoadError="HandleLoadError" /> *@
-<MudItem xs="12" Class="d-flex justify-content-end mb-3">
+<MudItem xs="12" Class="d-flex justify-content-start mb-3">
   @if (_isEditing)
   {
     <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
@@ -28,7 +27,8 @@
   }
   else
   {
-    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.EditNote" OnClick="StartEdit">Edit</MudButton>
+    <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.EditNote"
+      OnClick="StartEdit">Edit</MudButton>
   }
 </MudItem>
 
@@ -84,8 +84,15 @@
 
 
 
-          <MudTextField Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
+          @* <MudTextField Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" /> *@
+
+          <MudSelect T="UserGender ?" Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" Placeholder="Select Gender">
+            <MudSelectItem T="UserGender ?" Value="@(UserGender.Male)">Male</MudSelectItem>
+            <MudSelectItem T="UserGender ?" Value="@(UserGender.Female)">Female</MudSelectItem>
+          </MudSelect>
+
           <MudTextField Label="Nationality" @bind-Value="editParameters.Nationality" Disabled="!_isEditing"
             Variant="Variant.Filled" FullWidth Class="mb-3" />
 
