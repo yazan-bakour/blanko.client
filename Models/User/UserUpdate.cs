@@ -11,6 +11,7 @@ public class UserUpdate
   {
     if (other == null) return;
     Id = other.Id;
+    NewPassword = other.NewPassword;
     FullName = other.FullName;
     Email = other.Email;
     CreatedAt = other.CreatedAt;
@@ -36,6 +37,7 @@ public class UserUpdate
   }
 
   public int Id { get; set; }
+  public string? NewPassword { get; set; }
   public string FullName { get; set; } = string.Empty;
   public string Email { get; set; } = string.Empty;
   public DateTime? CreatedAt { get; set; }

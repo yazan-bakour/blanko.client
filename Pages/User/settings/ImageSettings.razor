@@ -1,0 +1,109 @@
+@using Microsoft.AspNetCore.Components.Web
+@using Banko.Client.Models.User
+@using Banko.Client.Components
+@using Banko.Client.Pages.User
+@using Banko.Client.Services
+
+@inject IDialogService DialogService
+
+<OpenDialog @ref="dialog" />
+
+<div class="profile-image-container"
+  @onclick="@(IsEditing ? EventCallback.Factory.Create(this, HandleProfileImageClick) : EventCallback.Empty)"
+  style="@(IsEditing ? "cursor: pointer;" : "")">
+
+  @if (!string.IsNullOrWhiteSpace(UserData.ProfilePictureDisplay))
+  {
+    <MudImage Src="@UserData.ProfilePictureDisplay" Alt="Profile Picture" Width="110" Height="110"
+      ObjectFit="ObjectFit.Cover" Elevation="0" Class="rounded-circle mb-2" />
+  }
+  else
+  {
+    <MudAvatar Color="Color.Primary" Style="height:110px; width:110px; font-size:3rem;" Class="mb-2">
+      @if (!string.IsNullOrWhiteSpace(UserData.FirstName))
+      {
+        @UserData.FirstName.First()
+      }
+      else if (!string.IsNullOrWhiteSpace(UserData.FullName))
+      {
+        @UserData.FullName.First()
+      }
+    </MudAvatar>
+  }
+  @if (IsEditing)
+  {
+    <div class="profile-image-overlay rounded-lg">
+      <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Style="color: white;" />
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter] public bool IsEditing { get; set; } = false;
+  [Parameter] public UserUpdate UserData { get; set; } = new UserUpdate();
+  [Parameter] public EventCallback<UserImageUploadResults> OnImageUpdated { get; set; }
+  [Parameter] public OpenDialog? dialog { get; set; }
+
+  public string? uploadedImage { get; set; }
+
+  private async Task HandleProfileImageClick()
+  {
+    if (dialog == null) return;
+    if (!IsEditing) return;
+
+    var dialogParameters = new DialogParameters<ProfilePictureUploadDialog>();
+    dialogParameters.Add(x => x.CurrentImageUrl, UserData.ProfilePictureUrl ?? string.Empty);
+
+    await dialog.OpenDialogAsync<ProfilePictureUploadDialog, UserImageUploadResults>(
+    title: "Update Profile Picture",
+    parameters: dialogParameters,
+    onSuccess: async (updateResult) =>
+    {
+      if (updateResult != null && !string.IsNullOrEmpty(updateResult.ImageData))
+      {
+        uploadedImage = updateResult.ImageData;
+        @* StateHasChanged(); *@
+        await OnImageUpdated.InvokeAsync(updateResult);
+      }
+    },
+    successMessage: null,
+    additionalActions: null
+    );
+  }
+}
+
+<style>
+  .profile-image-container {
+    position: relative;
+    display: inline-block;
+    border-radius: inherit;
+    width: 130px;
+  }
+
+  .profile-image-container:hover .profile-image-overlay {
+    opacity: 1;
+  }
+
+  .profile-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    border-radius: inherit;
+  }
+
+  .profile-image-container .rounded-lg {
+    border-radius: var(--mud-default-borderradius);
+  }
+
+  .profile-image-container>.mud-avatar {
+    border-radius: 50%;
+  }
+</style>

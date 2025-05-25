@@ -14,6 +14,7 @@ using Banko.Client.Helper;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using Banko.Client.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddScoped<AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthStateProvider>());
 
 builder.Services.AddScoped<LoadingService>();
+builder.Services.AddScoped<LoadUserData>();
 builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped(typeof(ICacheValidator<>), typeof(CacheValidator<>));
 
@@ -38,6 +40,7 @@ builder.Services.AddScoped<UserStateService>();
 builder.Services.AddScoped<AccountStateService>();
 builder.Services.AddScoped<TransactionStateService>();
 builder.Services.AddScoped<ErrorService>();
+builder.Services.AddScoped<UserDataLoaderService>();
 
 builder.Services.AddMudServices();
 

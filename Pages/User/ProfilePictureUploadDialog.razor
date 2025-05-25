@@ -1,151 +1,251 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.IO
 @using Banko.Client.Models.User
+@using Banko.Client.Helper
+@using System.IO.Compression;
 
 <MudDialog>
-  <TitleContent>
-    <MudText Typo="Typo.h6">Update Profile Picture</MudText>
-  </TitleContent>
-  <DialogContent>
-    <MudTabs Elevation="2" Rounded="true" Centered="true" PanelClass="mt-4">
-      <MudTabPanel Text="From URL">
-        <MudTextField @bind-Value="imageUrl" Label="Image URL" Variant="Variant.Outlined" Class="mt-3"
-          HelperText="Enter the direct URL of the image." />
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ApplyUrl" Class="mt-3"
-          Disabled="string.IsNullOrWhiteSpace(imageUrl)">Set Image from URL</MudButton>
-      </MudTabPanel>
-      <MudTabPanel Text="Upload File">
-        <MudFileUpload T="IBrowserFile" FilesChanged="OnFileSelected" Accept=".png,.jpg,.jpeg,.gif" MaximumFileCount="1"
-          Class="mt-3">
-          @* <InputFile OnChange="HandleInputFileChange" accept=".png,.jpg,.jpeg,.gif" id="fileInput"
-            style="display:none" />
-          <MudButton HtmlTag="label" Variant="Variant.Filled" Color="Color.Primary"
-            StartIcon="@Icons.Material.Filled.CloudUpload" for="fileInput">
-            Choose File
-          </MudButton> *@
-        </MudFileUpload>
-        @if (selectedFile != null)
-        {
-          <MudText Class="mt-2">Selected: @selectedFile.Name (@FormatBytes(selectedFile.Size))</MudText>
-          <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="UploadAndSetFile" Class="mt-2"
-            Disabled="isUploading">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Update Profile Picture</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div Class="dialog-height">
+            <MudTabs Elevation="2" Rounded="true" Centered="true" PanelClass="mt-4">
+                <MudTabPanel Text="From URL">
+                    <MudTextField @bind-Value="imageUrl" Label="Image URL" Variant="Variant.Outlined" Class="mt-3"
+                                  Immediate="true" HelperText="Enter the direct URL of the image." />
+                    @if (!string.IsNullOrWhiteSpace(imageUrl))
+                    {
+                        <div class="d-flex justify-center mt-3">
+                            <MudImage Src="@imageUrl" Alt="Preview" Width="100" Height="100" ObjectFit="ObjectFit.Cover"
+                                      Class="rounded" />
+                        </div>
+                    }
+                </MudTabPanel>
+
+                <MudTabPanel Text="Upload File">
+                    <MudFileUpload T="IBrowserFile" Accept=".png,.jpg,.jpeg,.gif" FilesChanged="OnFileSelected" Class="mt-3"
+                                   MaximumFileCount="1">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                                Choose File
+                            </MudButton>
+                        </ActivatorContent>
+                        <SelectedTemplate>
+                            @if (selectedFile != null)
+                            {
+                                <MudText Typo="Typo.caption">@selectedFile.Name (@FormatBytes(selectedFile.Size))</MudText>
+                            }
+                            @if (uploadError != null)
+                            {
+                                <MudText Typo="Typo.caption" Color="Color.Error">@uploadError</MudText>
+                            }
+                        </SelectedTemplate>
+                    </MudFileUpload>
+
+                    @if (previewImageBase64 != null)
+                    {
+                        <div class="d-flex justify-center mt-3">
+                            <MudImage Src="@previewImageBase64" Alt="Preview" Width="100" Height="100" ObjectFit="ObjectFit.Cover"
+                                      Class="rounded" />
+                        </div>
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CompleteSelection"
+                   Disabled="(string.IsNullOrWhiteSpace(imageUrl) && selectedFile == null) || isUploading">
             @if (isUploading)
             {
-              <MudProgressCircular Indeterminate="true" Size="Size.Small" />
-              <MudText Class="ml-2">Uploading...</MudText>
+                <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                <MudText Typo="Typo.caption" Class="ml-2">Processing...</MudText>
             }
             else
             {
-              <MudText>Use This Image</MudText>
+                <MudText>Complete</MudText>
             }
-          </MudButton>
-        }
-        @if (!string.IsNullOrWhiteSpace(uploadError))
-        {
-          <MudAlert Severity="Severity.Error" Class="mt-2">@uploadError</MudAlert>
-        }
-      </MudTabPanel>
-    </MudTabs>
-  </DialogContent>
-  <DialogActions>
-    <MudButton OnClick="Cancel">Cancel</MudButton>
-  </DialogActions>
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
 </MudDialog>
 
 @code {
-  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
-  [Parameter] public string CurrentImageUrl { get; set; } = string.Empty;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public string CurrentImageUrl { get; set; } = string.Empty;
 
-  private string imageUrl = string.Empty;
-  private IBrowserFile? selectedFile;
-  private bool isUploading = false;
-  private string? uploadError = null;
-  private const long MaxFileSize = 2 * 1024 * 1024; // 2MB
+    private string imageUrl = string.Empty;
+    private IBrowserFile? selectedFile;
+    private bool isUploading = false;
+    private string? uploadError = null;
+    private string? previewImageBase64 = null;
+    private const long MaxFileSize = 2 * 1024 * 1024;
+    private byte[]? fileData = null; // Store file bytes to avoid double-reading
 
-  protected override void OnInitialized()
-  {
-    imageUrl = CurrentImageUrl;
-  }
-
-  private void ApplyUrl()
-  {
-    if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var uriResult)
-    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+    protected override void OnInitialized()
     {
-      MudDialog.Close(DialogResult.Ok(new UserImageUploadResults { IsUrl = true, Data = imageUrl }));
+        imageUrl = CurrentImageUrl;
     }
-    else
+
+    private async Task CompleteSelection()
     {
-      uploadError = "Invalid URL format. Please enter a valid HTTP/HTTPS URL.";
-    }
-  }
+        uploadError = null;
 
-  private void HandleInputFileChange(InputFileChangeEventArgs e)
-  {
-    if (e.FileCount > 0)
+        if (selectedFile != null)
+        {
+            await ProcessSelectedFile();
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(imageUrl))
+        {
+            if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var uriResult)
+            && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+            {
+                MudDialog.Close(DialogResult.Ok(new UserImageUploadResults
+                {
+                    ImageSource = ImageSource.Url,
+                    ImageData = imageUrl
+                }));
+            }
+            else
+            {
+                uploadError = "Invalid URL format. Please enter a valid HTTP/HTTPS URL.";
+                StateHasChanged();
+            }
+            return;
+        }
+
+        uploadError = "Please provide either an image URL or select a file.";
+        StateHasChanged();
+    }
+
+    private async Task ProcessSelectedFile()
     {
-      var file = e.File;
-      OnFileSelected(file);
+        if (selectedFile == null) return;
+
+        isUploading = true;
+        uploadError = null;
+        StateHasChanged();
+
+        try
+        {
+            if (selectedFile.Size > MaxFileSize)
+            {
+                uploadError = $"File size exceeds {FormatBytes(MaxFileSize)} limit.";
+                isUploading = false;
+                StateHasChanged();
+                return;
+            }
+
+            string imageIdentifier;
+            if (fileData != null)
+            {
+                var compressed = Compress(fileData);
+                // Use GetFileHash instead of ToBase64String
+                imageIdentifier = $"data:{selectedFile.ContentType};base64,{Convert.ToBase64String(compressed)}";
+            }
+            else
+            {
+                var compressed = Compress(fileData);
+                using var memoryStream = new MemoryStream();
+                await selectedFile.OpenReadStream(MaxFileSize).CopyToAsync(memoryStream);
+                fileData = memoryStream.ToArray();
+                // Use GetFileHash instead of ToBase64String
+                imageIdentifier = $"data:{selectedFile.ContentType};base64,{Convert.ToBase64String(compressed)}";
+            }
+
+            imageUrl = string.Empty;
+
+            MudDialog.Close(DialogResult.Ok(new UserImageUploadResults
+            {
+                ImageSource = ImageSource.File,
+                ImageData = imageIdentifier
+            }));
+        }
+        catch (Exception ex)
+        {
+            uploadError = $"Error processing file: {ex.Message}";
+            StateHasChanged();
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
     }
-  }
-
-  private void OnFileSelected(IBrowserFile file)
-  {
-    selectedFile = file;
-    uploadError = null;
-    StateHasChanged();
-  }
-
-  private async Task UploadAndSetFile()
-  {
-    if (selectedFile == null) return;
-
-    isUploading = true;
-    uploadError = null;
-    StateHasChanged();
-
-    try
+    byte[] Compress(byte[] data)
     {
-      if (selectedFile.Size > MaxFileSize)
-      {
-        uploadError = $"File size exceeds {FormatBytes(MaxFileSize)} limit.";
-        isUploading = false;
-        return;
-      }
+        using var output = new MemoryStream();
+        using (var gzip = new GZipStream(output, CompressionLevel.Optimal))
+        {
+            gzip.Write(data, 0, data.Length);
+        }
+        return output.ToArray();
+    }
 
-      await using var memoryStream = new MemoryStream();
-      await selectedFile.OpenReadStream(MaxFileSize).CopyToAsync(memoryStream);
-      var base64String = $"data:{selectedFile.ContentType};base64,{Convert.ToBase64String(memoryStream.ToArray())}";
+    private async Task OnFileSelected(IBrowserFile file)
+    {
+        selectedFile = file;
+        uploadError = null;
+        fileData = null;
+        imageUrl = string.Empty;
 
-      MudDialog.Close(DialogResult.Ok(new UserImageUploadResults { IsUrl = false, Data = base64String }));
-    }
-    catch (Exception ex)
-    {
-      uploadError = $"Error processing file: {ex.Message}";
-    }
-    finally
-    {
-      isUploading = false;
-      StateHasChanged();
-    }
-  }
+        try
+        {
+            if (file.Size <= MaxFileSize)
+            {
+                using var memoryStream = new MemoryStream();
+                await file.OpenReadStream(MaxFileSize).CopyToAsync(memoryStream);
+                fileData = memoryStream.ToArray();
 
-  private void Cancel() => MudDialog.Cancel();
+                // Use GetFileHash instead of ToBase64String
+                var compressed = Compress(fileData);
+                previewImageBase64 = $"data:{file.ContentType};base64,{Convert.ToBase64String(compressed)}";
+            }
+            else
+            {
+                uploadError = $"File size exceeds {FormatBytes(MaxFileSize)} limit.";
+                previewImageBase64 = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadError = $"Error generating preview: {ex.Message}";
+            previewImageBase64 = null;
+            fileData = null;
+        }
 
-  private static string FormatBytes(long bytes)
-  {
-    string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
-    int i = 0;
-    double dblSByte = bytes;
-    if (bytes > 0) // Check to prevent division by zero or incorrect loop for 0 bytes
-    {
-      for (i = 0; (bytes / 1024) > 0 && i < suffixes.Length - 1; i++, bytes /= 1024)
-        dblSByte = bytes / 1024.0;
+        StateHasChanged();
     }
-    else
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private static string FormatBytes(long bytes)
     {
-      dblSByte = 0; // Handle 0 bytes case
+        string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
+        int i = 0;
+        double dblSByte = bytes;
+
+        if (bytes > 0)
+        {
+            for (i = 0; (bytes / 1024) > 0 && i < suffixes.Length - 1; i++, bytes /= 1024)
+            {
+                dblSByte = bytes / 1024.0;
+            }
+        }
+        else
+        {
+            dblSByte = 0;
+        }
+
+        return $"{dblSByte:0.##} {suffixes[i]}";
     }
-    return $"{dblSByte:0.##} {suffixes[i]}";
-  }
 }
+
+<style>
+    .dialog-height {
+        height: 230px;
+    }
+</style>

@@ -5,330 +5,252 @@
 @using Banko.Client.Services
 @using Banko.Client.Services.User
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
+@using Banko.Client.Pages.User.settings
 @using System.Globalization
 @using Banko.Client.Components
 
 @inject UserStateService UserState
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
-@inject AuthenticationStateProvider AuthStateProvider
-@inject IDialogService DialogService
 
 @attribute [Authorize]
 
 <PageTitle>Profile</PageTitle>
-<OpenDialog @ref="dialog" />
-<MudCard Elevation="25" Class="pa-4 w-100">
-  <MudForm Model="@editParameters" @ref="form" ValidationDelay="0">
+
+@* <LoadUserData OnDataLoaded="HandleUserDataLoaded" OnLoadError="HandleLoadError" /> *@
+<MudItem xs="12" Class="d-flex justify-content-end mb-3">
+  @if (_isEditing)
+  {
+    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
+      Disabled="LoadingService.IsLoading">Save Changes</MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CancelEdit" Disabled="LoadingService.IsLoading">
+      Cancel</MudButton>
+  }
+  else
+  {
+    <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.EditNote" OnClick="StartEdit">Edit</MudButton>
+  }
+</MudItem>
+
+<MudCard Elevation="25" Class="pa-7 w-100">
+  <MudForm Model="@editParameters" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess">
     <MudGrid Spacing="0">
-      <AuthorizeView>
-        <Authorized>
-          @{
-            PopulateEditParameters(context.User);
-          }
-          <MudGrid Spacing="3" Style="height: fit-content">
-            <MudItem xs="12" sm="4" md="3" Class="d-flex flex-column align-center justify-start mt-2">
-              <div class="profile-image-container"
-                @onclick="@(_isEditing ? EventCallback.Factory.Create(this, HandleProfileImageClick) : EventCallback.Empty)"
-                style="@(_isEditing ? "cursor: pointer;" : "")">
-                @if (!string.IsNullOrWhiteSpace(editParameters.ProfilePictureDisplay))
-                {
-                  <MudImage Src="@editParameters.ProfilePictureDisplay" Alt="Profile Picture" Width="128" Height="128"
-                    ObjectFit="ObjectFit.Cover" Elevation="0" Class="rounded-lg mb-2" />
-                }
-                else
-                {
-                  <MudAvatar Color="Color.Primary" Style="height:128px; width:128px; font-size:3rem;" Class="mb-2">
-                    @if (!string.IsNullOrWhiteSpace(editParameters.FirstName))
-                    {
-                      @editParameters.FirstName.First()
-                    }
-                    else if (!string.IsNullOrWhiteSpace(editParameters.FullName))
-                    {
-                      @editParameters.FullName.First()
-                    }
-                  </MudAvatar>
-                }
-                @if (_isEditing)
-                {
-                  <div class="profile-image-overlay">
-                    <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Style="color: white;" />
-                  </div>
-                }
-              </div>
-              <MudText Typo="Typo.body1" Color="Color.Primary" Class="mt-1">@editParameters.UniqueId</MudText>
+      <MudGrid Spacing="0">
+
+        <MudItem xs="12">
+          <MudGrid Spacing="0">
+            <MudItem xs="6" Class="d-flex flex-column">
+              <MudText Typo="Typo.h4" Color="Color.Primary" Class="mt-1 mud-width-full">
+                @editParameters.FullName
+              </MudText>
+              <MudText Typo="Typo.body1" Color="Color.Primary" Class="mt-1 mud-width-full">
+                @editParameters.UniqueId
+              </MudText>
               <MudText Typo="Typo.caption" Class="mt-1">Joined:
-                @(editParameters.CreatedAt?.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") ?? "N/A")</MudText>
+                @(editParameters.CreatedAt?.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") ?? "N/A")
+              </MudText>
             </MudItem>
 
-            <MudItem xs="12" sm="8" md="9">
-              <MudText Typo="Typo.h6" Class="mb-3">Account Information</MudText>
-
-              <MudTextField Label="Email" @bind-Value="editParameters.Email" ReadOnly="true" Variant="Variant.Text"
-                Icon="@Icons.Material.Filled.Email" FullWidth Class="mb-3" />
-              <MudTextField Label="Role" @bind-Value="editParameters.Role" ReadOnly="true" Variant="Variant.Text"
-                Icon="@Icons.Material.Filled.VerifiedUser" FullWidth Class="mb-3" />
-
-              <MudText Typo="Typo.h6" Class="mt-4 mb-3">Personal Details</MudText>
-              <MudTextField Label="First Name" @bind-Value="editParameters.FirstName" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Person" FullWidth Class="mb-3" />
-              <MudTextField Label="Last Name" @bind-Value="editParameters.LastName" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.PersonOutline" FullWidth Class="mb-3" />
-
-              @{
-                string dateOfBirthString = editParameters.DateOfBirth?.ToString("yyyy-MM-dd") ?? "";
-              }
-              <MudTextField Label="Date of Birth"
-                HelperText="@(_isEditing ? "YYYY-MM-DD" : editParameters.DateOfBirth?.ToLocalTime().ToString("MMMM dd, yyyy") ?? "N/A")"
-                InputType="InputType.Date" @bind-Value="dateOfBirthString" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Cake" FullWidth Class="mb-3"
-                OnBlur="() => UpdateDateOfBirthFromString(dateOfBirthString)" />
-
-              <MudTextField Label="Gender" @bind-Value="editParameters.Gender" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Wc" FullWidth Class="mb-3" />
-              <MudTextField Label="Nationality" @bind-Value="editParameters.Nationality" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Flag" FullWidth Class="mb-3" />
-
-              <MudText Typo="Typo.h6" Class="mt-4 mb-3">Contact Information</MudText>
-              <MudTextField Label="Phone Number" @bind-Value="editParameters.PhoneNumber" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Phone" FullWidth Class="mb-3" />
-              <MudTextField Label="Address" @bind-Value="editParameters.Address" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Home" FullWidth Class="mb-3" />
-              <MudTextField Label="City" @bind-Value="editParameters.City" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.LocationCity" FullWidth Class="mb-3" />
-              <MudTextField Label="State" @bind-Value="editParameters.State" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Map" FullWidth Class="mb-3" />
-              <MudTextField Label="Zip Code" @bind-Value="editParameters.ZipCode" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.LocalPostOffice" FullWidth Class="mb-3" />
-              <MudTextField Label="Country" @bind-Value="editParameters.Country" ReadOnly="!_isEditing"
-                Variant="Variant.Filled" Icon="@Icons.Material.Filled.Public" FullWidth Class="mb-3" />
-
-              <MudItem xs="12" Class="d-flex justify-end mt-4">
-                @if (_isEditing)
-                {
-                  <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
-                    Disabled="LoadingService.IsLoading">Save Changes</MudButton>
-                  <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CancelEdit"
-                    Disabled="LoadingService.IsLoading">Cancel</MudButton>
-                }
-                else
-                {
-                  <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartEdit">Edit Profile</MudButton>
-                }
-              </MudItem>
-              @* Hidden submit button - not strictly necessary if HandleSaveAsync validates and submits *@
-              <button type="submit" style="display:none;" @onclick="HandleHiddenSubmitAsync"
-                @onclick:preventDefault></button>
+            <MudItem xs="6" Class="d-flex justify-end">
+              <ImageSettings IsEditing="_isEditing" UserData="editParameters" OnImageUpdated="HandleImageUpdated" />
             </MudItem>
           </MudGrid>
-        </Authorized>
-        <NotAuthorized>
-          <MudText>You are not authorized to view this page. Please log in.</MudText>
-        </NotAuthorized>
-      </AuthorizeView>
+        </MudItem>
+
+        <MudItem xs="12">
+          <MudText Typo="Typo.h6" Class="mb-3">Account Information</MudText>
+
+          <MudTextField Label="Email" @bind-Value="editParameters.Email" ReadOnly="true" Variant="Variant.Text"
+            FullWidth Class="mb-3" />
+          <MudTextField Label="Role" @bind-Value="editParameters.Role" ReadOnly="true" Variant="Variant.Text" FullWidth
+            Class="mb-3" />
+
+          <MudText Typo="Typo.h6" Class="mt-4 mb-3 mt-10">Personal Details</MudText>
+          <MudTextField Label="First Name" @bind-Value="editParameters.FirstName" Disabled="!_isEditing"
+            Variant="Variant.Filled" Class="mb-3" Required />
+          <MudTextField Label="Last Name" @bind-Value="editParameters.LastName" Disabled="!_isEditing"
+            Variant="Variant.Filled" Class="mb-3" Required />
+
+          <MudTextField Label="Password" @bind-Value="editParameters.NewPassword" Disabled="!_isEditing"
+            InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
+            AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+            OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Variant="Variant.Filled" Class="mb-3"
+            Immediate="true" />
+
+          <MudDatePicker Class="mb-3" Label="Date of Birth" Editable="true" Disabled="!_isEditing"
+            Variant="Variant.Filled" Placeholder="Select Date of Birth" DateFormat="dd.MM.yyyy"
+            @bind-Date="editParameters.DateOfBirth" Mask="@(new DateMask("dd.MM.yyyy"))"
+            PickerVariant="PickerVariant.Dialog" />
+
+
+
+          <MudTextField Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+          <MudTextField Label="Nationality" @bind-Value="editParameters.Nationality" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+
+          <MudText Typo="Typo.h6" Class="mt-4 mb-3 mt-10">Contact Information</MudText>
+          <MudTextField Label="Phone Number" @bind-Value="editParameters.PhoneNumber" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+          <MudTextField Label="Address" @bind-Value="editParameters.Address" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+          <MudTextField Label="City" @bind-Value="editParameters.City" Disabled="!_isEditing" Variant="Variant.Filled"
+            FullWidth Class="mb-3" />
+          <MudTextField Label="State" @bind-Value="editParameters.State" Disabled="!_isEditing" Variant="Variant.Filled"
+            FullWidth Class="mb-3" />
+          <MudTextField Label="Zip Code" @bind-Value="editParameters.ZipCode" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+          <MudTextField Label="Country" @bind-Value="editParameters.Country" Disabled="!_isEditing"
+            Variant="Variant.Filled" FullWidth Class="mb-3" />
+
+          <MudItem xs="12" Class="d-flex justify-end mt-4">
+            @if (_isEditing)
+            {
+              <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
+                Disabled="LoadingService.IsLoading">Save Changes</MudButton>
+              <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CancelEdit"
+                Disabled="LoadingService.IsLoading">Cancel</MudButton>
+            }
+            else
+            {
+              <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartEdit">Edit Profile</MudButton>
+            }
+          </MudItem>
+        </MudItem>
+      </MudGrid>
     </MudGrid>
   </MudForm>
 </MudCard>
-<style>
-  .profile-image-container {
-    position: relative;
-    display: inline-block;
-    /* Or block, depending on layout needs */
-    border-radius: inherit;
-    /* Inherit from MudImage/MudAvatar if they have one */
-  }
 
-  .profile-image-container:hover .profile-image-overlay {
-    opacity: 1;
-  }
-
-  .profile-image-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    /* Semi-transparent black */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    /* Hidden by default */
-    transition: opacity 0.3s ease;
-    border-radius: inherit;
-    /* Match the image/avatar's border-radius */
-  }
-
-  .profile-image-container .rounded-lg {
-    border-radius: var(--mud-default-borderradius);
-  }
-
-  .profile-image-container>.mud-avatar {
-    border-radius: 50%;
-  }
-</style>
 
 @code {
-  public UserUpdate editParameters = new UserUpdate();
+  private UserUpdate editParameters = new UserUpdate();
   private UserUpdate originalParameters = new UserUpdate();
   private bool _isEditing = false;
   private MudForm? form;
-  private OpenDialog? dialog;
+  private bool isSuccess = false;
+  private bool _passwordVisible = false;
 
-  private void PopulateEditParameters(ClaimsPrincipal user)
+  protected override async Task OnInitializedAsync()
   {
-    var initialDisplayPic = user.FindFirst("profilePictureDisplay")?.Value ?? user.FindFirst("picture")?.Value ??
-    string.Empty;
+    // When UserState changes, update our local copy if we're not in edit mode
+    if (!_isEditing && UserState.CurrentUser != null)
+    {
+      await PopulateFromCurrentUser();
+      StateHasChanged();
+    }
+  }
+  private void HandleLoadError(Exception ex)
+  {
+    // Handle load error - perhaps show a more specific error or retry option
+    Snackbar.Add($"Failed to load profile data: {ex.Message}", Severity.Error);
+  }
+
+  private async Task PopulateFromCurrentUser()
+  {
+    await UserState.LoadUserDataAsync();
+    var user = UserState.CurrentUser?.User;
+    if (user == null) return;
+
+    // Create a new UserUpdate instance and populate from UserRead
     editParameters = new UserUpdate
     {
-      Id = int.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0,
-      Email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty,
-      Role = Enum.TryParse<UserRole>(user.FindFirst(ClaimTypes.Role)?.Value, true, out var roleEnum) ? roleEnum :
-    (UserRole?)null,
-      FullName = user.FindFirst("fullName")?.Value ?? user.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
-      FirstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty,
-      LastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty,
-      PhoneNumber = user.FindFirst(ClaimTypes.MobilePhone)?.Value ?? user.FindFirst("phoneNumber")?.Value ?? string.Empty,
-      Address = user.FindFirst(ClaimTypes.StreetAddress)?.Value ?? string.Empty,
-      City = user.FindFirst(ClaimTypes.Locality)?.Value ?? string.Empty,
-      State = user.FindFirst(ClaimTypes.StateOrProvince)?.Value ?? string.Empty,
-      ZipCode = user.FindFirst(ClaimTypes.PostalCode)?.Value ?? string.Empty,
-      Country = user.FindFirst(ClaimTypes.Country)?.Value ?? string.Empty,
-      DateOfBirth = DateTime.TryParse(user.FindFirst(ClaimTypes.DateOfBirth)?.Value, CultureInfo.InvariantCulture,
-    DateTimeStyles.AdjustToUniversal, out var dob) ? dob.ToLocalTime() : (DateTime?)null,
-      Nationality = user.FindFirst("nationality")?.Value ?? string.Empty,
-      Gender = Enum.TryParse<UserGender>(user.FindFirst(ClaimTypes.Gender)?.Value, true, out var genderEnum) ? genderEnum :
-    (UserGender?)null,
-      UniqueId = user.FindFirst("uniqueId")?.Value ?? string.Empty,
-      CreatedAt = DateTime.TryParse(user.FindFirst("createdAt")?.Value, CultureInfo.InvariantCulture,
-    DateTimeStyles.AdjustToUniversal, out var ca) ? ca.ToLocalTime() : (DateTime?)null,
-      ProfilePictureDisplay = initialDisplayPic,
-      ProfilePictureUrl = (!string.IsNullOrEmpty(initialDisplayPic) && (initialDisplayPic.StartsWith("http://") ||
-    initialDisplayPic.StartsWith("https://"))) ? initialDisplayPic : null,
+      Id = user.Id,
+      Email = user.Email,
+      Role = user.Role,
+      FullName = user.FullName,
+      FirstName = user.FirstName,
+      LastName = user.LastName,
+      PhoneNumber = user.PhoneNumber,
+      Address = user.Address,
+      City = user.City,
+      State = user.State,
+      ZipCode = user.ZipCode,
+      Country = user.Country,
+      DateOfBirth = user.DateOfBirth,
+      Nationality = user.Nationality,
+      Gender = user.Gender,
+      UniqueId = user.UniqueId,
+      CreatedAt = user.CreatedAt,
+      ProfilePictureDisplay = user.ProfilePictureDisplay,
+      ProfilePictureUrl = user.ProfilePictureDisplay?.StartsWith("http") == true ?
+    user.ProfilePictureDisplay : null,
       ProfilePictureFile = null
     };
+
+    // Create a backup for cancel operations
     originalParameters = new UserUpdate(editParameters);
   }
 
-  private async Task HandleProfileImageClick()
+  private void HandleImageUpdated(UserImageUploadResults updateResult)
   {
-    if (dialog == null) return;
-    if (!_isEditing) return;
-
-    var dialogParameters = new DialogParameters<ProfilePictureUploadDialog>
-{
-{ x => x.CurrentImageUrl, editParameters.ProfilePictureUrl ?? string.Empty }
-};
-
-    await dialog.OpenDialogAsync<ProfilePictureUploadDialog, UserImageUploadResults>(
-    title: "Update Profile Picture",
-    parameters: dialogParameters,
-    onSuccess: async (updateResult) =>
+    if (updateResult != null && !string.IsNullOrEmpty(updateResult.ImageData))
     {
-      if (updateResult.IsUrl)
+      // Update the display image immediately
+      editParameters.ProfilePictureDisplay = updateResult.ImageData;
+
+      // Update the source property based on where the image came from
+      if (updateResult.ImageSource == ImageSource.Url)
       {
-        editParameters.ProfilePictureDisplay = updateResult.Data;
-        editParameters.ProfilePictureUrl = updateResult.Data;
+        editParameters.ProfilePictureUrl = updateResult.ImageData;
         editParameters.ProfilePictureFile = null;
       }
-      else
+      else // File
       {
-        editParameters.ProfilePictureDisplay = updateResult.Data;
-        editParameters.ProfilePictureFile = updateResult.Data;
+        editParameters.ProfilePictureFile = updateResult.ImageData;
         editParameters.ProfilePictureUrl = null;
       }
-    },
-    successMessage: null,
-    additionalActions: async () =>
-    {
-      StateHasChanged();
     }
-    );
+    StateHasChanged();
   }
 
-  private UserUpdate CopyUserUpdate(UserUpdate source)
-  {
-    if (source == null) return new UserUpdate();
-    return new UserUpdate
-    {
-      Id = source.Id,
-      FullName = source.FullName,
-      Email = source.Email,
-      CreatedAt = source.CreatedAt,
-      Role = source.Role,
-      FirstName = source.FirstName,
-      LastName = source.LastName,
-      UpdatedAt = source.UpdatedAt,
-      PhoneNumber = source.PhoneNumber,
-      Address = source.Address,
-      City = source.City,
-      State = source.State,
-      ZipCode = source.ZipCode,
-      Country = source.Country,
-      DateOfBirth = source.DateOfBirth,
-      LastLogin = source.LastLogin,
-      Nationality = source.Nationality,
-      Gender = source.Gender,
-      IsVerified = source.IsVerified,
-      UniqueId = source.UniqueId,
-      ProfilePictureDisplay = source.ProfilePictureDisplay
-    };
-  }
   private void StartEdit()
   {
-    originalParameters = CopyUserUpdate(editParameters);
+    originalParameters = new UserUpdate(editParameters);
     _isEditing = true;
   }
-
   private async Task HandleSaveAsync()
   {
     if (form == null) return;
+
     LoadingService.IsLoading = true;
     await form.Validate();
+
     if (form.IsValid)
     {
-      await Task.Delay(1000);
-      // var result = await userService.UpdateUserProfileAsync(editParameters);
-      // if (result.IsSuccess) {
-      Snackbar.Add("Profile update simulated successfully!", Severity.Success);
-      originalParameters = CopyUserUpdate(editParameters);
-      _isEditing = false;
-      // } else {
-      // Snackbar.Add($"Error: {result.ErrorMessage}", Severity.Error);
-      // }
+      try
+      {
+        bool success = await UserState.UpdateProfileSettingsAsync(editParameters);
+
+        if (success)
+        {
+          _isEditing = false;
+          // Reload user data to refresh the UI with the latest values from the server
+          await PopulateFromCurrentUser();
+          Snackbar.Add("Profile updated successfully!", Severity.Success);
+        }
+        else
+        {
+          Snackbar.Add("Failed to update profile.", Severity.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
+      }
     }
     else
     {
       Snackbar.Add("Please correct validation errors.", Severity.Warning);
     }
-    LoadingService.IsLoading = false;
-  }
 
-  private void UpdateDateOfBirthFromString(string dateString)
-  {
-    if (DateTime.TryParse(dateString, out DateTime dob))
-    {
-      editParameters.DateOfBirth = dob;
-    }
-    else
-    {
-      editParameters.DateOfBirth = null;
-    }
+    LoadingService.IsLoading = false;
   }
 
   private void CancelEdit()
   {
-    editParameters = CopyUserUpdate(originalParameters);
+    editParameters = new UserUpdate(originalParameters);
     _isEditing = false;
-  }
-
-  private async Task HandleHiddenSubmitAsync()
-  {
-    if (_isEditing)
-    {
-      await HandleSaveAsync();
-    }
+    StateHasChanged();
   }
 }
