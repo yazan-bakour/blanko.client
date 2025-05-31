@@ -1,40 +1,45 @@
 ﻿@using Banko.Client.Models.User
+@using Banko.Client.Services.Auth
+@using Microsoft.AspNetCore.Components.Routing
+
+@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
 @inherits LayoutComponentBase
 
-<MudLayout type="typeof(App)" render-mode="WebAssemblyPrerendered" param-InitialState="serializedUserStateJson">
-  <MudAppBar Dense="true" Elevation="1">
-    <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end py-2">
-      <AuthorizeView>
-        <Authorized>
-          <MudMenu Dense Variant="Variant.Text" Size="Size.Medium" Color="Color.Inherit">
-            <ActivatorContent>
-              <MudAvatar>
-                <MudImage Src="@context.User.FindFirst("profilePictureDisplay")?.Value" />
-              </MudAvatar>
-            </ActivatorContent>
+<MudLayout>
+  @if (!IsProfileRoute())
+  {
+    <MudAppBar Dense="true">
+      <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end px-3">
+        <AuthorizeView>
+          <Authorized>
+            <MudMenu Variant="Variant.Text" Size="Size.Large" Class="ml-2" AnchorOrigin="Origin.BottomRight"
+              TransformOrigin="Origin.TopRight">
+              <ActivatorContent>
+                <MudAvatar>
+                  <MudImage Src="@context.User.FindFirst("profilePictureDisplay")?.Value" />
+                </MudAvatar>
+              </ActivatorContent>
 
-            <ChildContent>
-              <MudMenu StartIcon="@Icons.Material.TwoTone.Settings" IconColor="Color.Primary" Label="Settings">
-                <MudMenuItem Icon="@Icons.Material.TwoTone.DarkMode" IconColor="Color.Secondary" Label="Dark Theme" />
-              </MudMenu>
+              <ChildContent>
+                <MudMenuItem Icon="@Icons.Material.Filled.Settings" StartIcon="@Icons.Material.TwoTone.Settings"
+                  IconColor="Color.Primary" Label="Settings" />
 
-              <MudDivider />
+                <MudDivider />
 
-              <MudMenuItem Href="/" ForceLoad Icon="@Icons.Material.TwoTone.Login" IconColor="Color.Primary"
-                Label="Sign In" />
+                <MudMenuItem OnClick="@(() => HandleLogout())" ForceLoad Icon="@Icons.Material.TwoTone.Logout"
+                  IconColor="Color.Primary" Label="Log out" />
 
-              <MudMenuItem Href="/" ForceLoad Icon="@Icons.Material.TwoTone.Logout" IconColor="Color.Primary"
-                Label="Sign Out" />
-
-            </ChildContent>
-          </MudMenu>
-        </Authorized>
-      </AuthorizeView>
-    </MudContainer>
-  </MudAppBar>
+              </ChildContent>
+            </MudMenu>
+          </Authorized>
+        </AuthorizeView>
+      </MudContainer>
+    </MudAppBar>
+  }
   <NavMenu @bind-Open="_open" />
-  <MudMainContent Class="pb-16">
-    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4" Style="@($"color:{Colors.LightBlue.Lighten1};")">
+  <MudMainContent Class="@GetMainContentClass()">
+    <MudContainer MaxWidth="MaxWidth.Large" Style="@($"color:{Colors.LightBlue.Lighten1};")">
       @Body
     </MudContainer>
   </MudMainContent>
@@ -42,9 +47,32 @@
 
 @code {
   private bool _open = true;
-
+  private Origin _anchor = Origin.BottomCenter;
+  private Origin _transform = Origin.TopRight;
+  private DropdownWidth _dropdownWidth = DropdownWidth.Ignore;
   private void ToggleDrawer()
   {
     _open = !_open;
   }
+  private async Task HandleLogout()
+  {
+    await AuthService.LogoutAsync();
+  }
+  private bool IsProfileRoute()
+  {
+    var currentUri = NavigationManager.Uri;
+    return currentUri.Contains("/profile") || currentUri.Contains("/profile/account");
+  }
+  private string GetMainContentClass()
+  {
+    return IsProfileRoute()
+    ? "pb-16 pt-4"
+    : "pb-16 pt-16";
+  }
 }
+<style>
+  .mud-popover {
+    width: 200px;
+    background: #17538d;
+  }
+</style>

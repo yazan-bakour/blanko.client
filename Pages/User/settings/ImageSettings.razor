@@ -8,18 +8,17 @@
 
 <OpenDialog @ref="dialog" />
 
-<div class="profile-image-container"
-  @onclick="@(IsEditing ? EventCallback.Factory.Create(this, HandleProfileImageClick) : EventCallback.Empty)"
-  style="@(IsEditing ? "cursor: pointer;" : "")">
+<div class="profile-image-container cursor-pointer"
+  @onclick="@EventCallback.Factory.Create(this, HandleProfileImageClick)">
 
   @if (!string.IsNullOrWhiteSpace(UserData.ProfilePictureDisplay))
   {
-    <MudImage Src="@UserData.ProfilePictureDisplay" Alt="Profile Picture" Width="110" Height="110"
-      ObjectFit="ObjectFit.Cover" Elevation="0" Class="rounded-circle mb-2" />
+    <MudImage Src="@UserData.ProfilePictureDisplay" Alt="Profile Picture" Width="130" Height="130"
+      ObjectFit="ObjectFit.Cover" Class="rounded-circle mb-2" />
   }
   else
   {
-    <MudAvatar Color="Color.Primary" Style="height:110px; width:110px; font-size:3rem;" Class="mb-2">
+    <MudAvatar Color="Color.Primary" Style="height:130px; width:130px; font-size:3rem;" Class="mb-2">
       @if (!string.IsNullOrWhiteSpace(UserData.FirstName))
       {
         @UserData.FirstName.First()
@@ -30,16 +29,12 @@
       }
     </MudAvatar>
   }
-  @if (IsEditing)
-  {
-    <div class="profile-image-overlay rounded-lg">
-      <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Style="color: white;" />
-    </div>
-  }
+  <div class="profile-image-overlay rounded-lg">
+    <MudIcon Icon="@Icons.Material.Filled.Edit" Size="Size.Large" Style="color: white;" />
+  </div>
 </div>
 
 @code {
-  [Parameter] public bool IsEditing { get; set; } = false;
   [Parameter] public UserUpdate UserData { get; set; } = new UserUpdate();
   [Parameter] public EventCallback<UserImageUploadResults> OnImageUpdated { get; set; }
   [Parameter] public OpenDialog? dialog { get; set; }
@@ -49,7 +44,6 @@
   private async Task HandleProfileImageClick()
   {
     if (dialog == null) return;
-    if (!IsEditing) return;
 
     var dialogParameters = new DialogParameters<ProfilePictureUploadDialog>();
     dialogParameters.Add(x => x.CurrentImageUrl, UserData.ProfilePictureUrl ?? string.Empty);
@@ -77,9 +71,8 @@
     position: relative;
     border-radius: 50%;
     overflow: hidden;
-    width: 110px;
-    height: 110px;
-  }
+    width: 130px;
+    height: 130px;
   }
 
   .profile-image-container:hover .profile-image-overlay {

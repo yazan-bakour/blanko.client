@@ -1,0 +1,99 @@
+@page "/profile/appearance"
+
+@using Banko.Client.Services.User
+@inject UserStateService UserState
+
+<MudPaper Class="pa-4 mt-4">
+  <MudText Typo="Typo.h5">Appearance Settings</MudText>
+
+  <MudGrid Class="mt-4">
+    <MudItem xs="12">
+      <MudSwitch @bind-Value="darkModeObject" Color="Color.Primary" Converter="(new ObjectToBoolConverter())">
+        @(UserState.IsDarkMode ? "Dark Mode" : "Light Mode")
+      </MudSwitch>
+
+      <MudText Typo="Typo.body2" Class="mt-1">
+        Switch between light and dark theme for the application.
+      </MudText>
+    </MudItem>
+  </MudGrid>
+</MudPaper>
+
+@code {
+  public object darkModeObject
+  {
+    get => UserState.IsDarkMode;
+    set
+    {
+      if (value is bool boolValue)
+      {
+        _ = OnDarkModeChangedAsync(boolValue);
+      }
+    }
+  }
+
+  public class ObjectToBoolConverter : BoolConverter<object>
+  {
+    public ObjectToBoolConverter()
+    {
+      SetFunc = OnSet;
+      GetFunc = OnGet;
+    }
+
+    private object OnGet(bool? value)
+    {
+      try
+      {
+        return value == true;
+      }
+      catch (Exception e)
+      {
+        UpdateGetError("Conversion error: " + e.Message);
+        return default;
+      }
+    }
+
+    private bool? OnSet(object arg)
+    {
+      if (arg == null)
+        return null;
+      try
+      {
+        if (arg is bool)
+          return (bool)arg;
+        else if (arg is bool?)
+          return (bool?)arg;
+        else
+        {
+          UpdateSetError("Unable to convert to bool? from type object");
+          return null;
+        }
+      }
+      catch (FormatException e)
+      {
+        UpdateSetError("Conversion error: " + e.Message);
+        return null;
+      }
+    }
+  }
+
+  protected override void OnInitialized()
+  {
+    UserState.OnDarkModeChanged += HandleDarkModeChanged;
+  }
+
+  private async Task OnDarkModeChangedAsync(bool value)
+  {
+    await UserState.UpdateDarkModePreferenceAsync(value);
+  }
+
+  private void HandleDarkModeChanged(bool darkModeValue)
+  {
+    StateHasChanged();
+  }
+
+  public void Dispose()
+  {
+    UserState.OnDarkModeChanged -= HandleDarkModeChanged;
+  }
+}

@@ -1,15 +1,14 @@
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Helper
 
-<MudPaper Elevation="2" Class="pa-4 rounded-lg">
+<MudPaper Class="pa-4 rounded-lg">
   <MudText Typo="Typo.h6" Class="mb-2">
     <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />Recent Transactions
   </MudText>
 
   @if (transactions?.Length > 0)
   {
-    <MudTable Items="@transactions.OrderByDescending(t => t.TransactionDate).Take(5)" Dense="true" Hover="true"
-      Elevation="0">
+    <MudTable Items="@transactions.OrderByDescending(t => t.TransactionDate).Take(5)" Dense="true" Hover="true">
       <ColGroup>
         <col style="width: 40%;" />
         <col style="width: 30%;" />

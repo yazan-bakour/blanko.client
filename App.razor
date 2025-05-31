@@ -1,4 +1,7 @@
-﻿@inject LoadingService LoadingService
+﻿@using Banko.Client.Services.User
+
+@inject UserStateService UserStateService
+@inject LoadingService LoadingService
 
 <LoadingIndicator />
 
@@ -25,7 +28,7 @@
   </Router>
 </CascadingAuthenticationState>
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" />
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="MyCustomTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -33,13 +36,62 @@
 @code {
   private bool _isDarkMode;
   private MudThemeProvider? _mudThemeProvider;
+  MudTheme MyCustomTheme = new MudTheme()
+  {
+    PaletteLight = new PaletteLight()
+    {
+      Primary = Colors.Blue.Default,
+      Secondary = Colors.Green.Accent4,
+      AppbarBackground = Colors.Red.Default,
+    },
+    PaletteDark = new PaletteDark()
+    {
+      Primary = Colors.LightBlue.Lighten5,
+      Secondary = Colors.Indigo.Darken3,
+      Dark = Colors.LightBlue.Darken4,
+      Info = Colors.Blue.Accent1,
+      AppbarBackground = Colors.Red.Lighten5,
+      TextDisabled = Colors.Gray.Darken1,
+      Surface = Colors.Indigo.Darken3,
+      Background = Colors.Indigo.Darken4,
+
+
+    },
+    LayoutProperties = new LayoutProperties()
+    {
+      @* AppbarHeight = "64px", *@
+      @* DrawerWidthLeft = "260px",
+      DrawerWidthRight = "300px" *@
+    }
+  };
+
+  protected override void OnInitialized()
+  {
+    UserStateService.OnDarkModeChanged += HandleDarkModeChanged;
+    base.OnInitialized();
+  }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
     {
-      _isDarkMode = await _mudThemeProvider!.GetSystemPreference();
+      var systemPreference = await _mudThemeProvider!.GetSystemPreference();
+      _isDarkMode = UserStateService.IsDarkMode || systemPreference;
+      if (!UserStateService.CurrentUser?.User.Preferences?.ContainsKey("DarkMode") == true)
+      {
+        await UserStateService.UpdateDarkModePreferenceAsync(_isDarkMode);
+      }
       StateHasChanged();
     }
+  }
+  private void HandleDarkModeChanged(bool isDarkMode)
+  {
+    _isDarkMode = isDarkMode;
+    StateHasChanged();
+  }
+  public bool IsDarkMode() => _isDarkMode;
+  public void ToggleDarkMode()
+  {
+    UserStateService.OnDarkModeChanged -= HandleDarkModeChanged;
   }
 }

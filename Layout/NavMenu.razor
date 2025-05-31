@@ -8,14 +8,25 @@
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@Open" Elevation="1" Variant="@DrawerVariant.Persistent">
-  <MudDrawerHeader Class="justify-space-between">
+<MudDrawer @bind-Open="@Open" Variant="@DrawerVariant.Persistent" Breakpoint="@_breakpoint">
+  <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
-        <MudText Typo="Typo.h6" Color="Color.Success">Banko</MudText>
+        @if (IsProfileRoute())
+        {
+          <MudItem Class="d-flex align-center">
+            <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Primary" Size="Size.Medium" Class="mr-2"
+              OnClick="@(() => NavigationManager.NavigateTo("/"))" aria-label="Close profile and return to dashboard" />
+            <MudText Typo="Typo.h5" Color="Color.Primary">Settings</MudText>
+          </MudItem>
+        }
+        else
+        {
+          <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
+        }
       </Authorized>
       <NotAuthorized>
-        <MudText Typo="Typo.h6" Color="Color.Error">Banko</MudText>
+        <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
       </NotAuthorized>
     </AuthorizeView>
   </MudDrawerHeader>
@@ -26,12 +37,29 @@
           var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
           var userName = context.User.Identity?.Name ?? "User";
         }
-        <MudNavLink Match="NavLinkMatch.All" Href="/">Dashboard</MudNavLink>
-        <MudNavLink Href="profile">Profile</MudNavLink>
-        <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
-        <MudNavLink Href="transactions">Transactions</MudNavLink>
-        <MudNavLink Href="funds">Funds</MudNavLink>
-        <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink>
+        @if (IsProfileRoute())
+        {
+          <!-- Profile-specific navigation items -->
+          <MudNavLink Class="@GetActiveClass()" Icon="@Icons.Material.Outlined.PermIdentity" Href="profile"
+            Match="NavLinkMatch.All">
+            Account</MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Outlined.PrivacyTip" Href="profile/privacy">
+            Privacy</MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Outlined.EditNotifications" Href="profile/notification">Notification
+          </MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Outlined.Palette" Href="profile/appearance">
+            Appearance</MudNavLink>
+        }
+        else
+        {
+          <!-- Default navigation items -->
+          <MudNavLink Match="NavLinkMatch.All" Href="/">Dashboard</MudNavLink>
+          <MudNavLink Href="profile">Profile</MudNavLink>
+          <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
+          <MudNavLink Href="transactions">Transactions</MudNavLink>
+          <MudNavLink Href="funds">Funds</MudNavLink>
+          <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink>
+        }
       </Authorized>
       <NotAuthorized>
         <MudNavLink Href="login">Login</MudNavLink>
@@ -46,10 +74,40 @@
   public bool Open { get; set; }
   [Parameter]
   public EventCallback<bool> OpenChanged { get; set; }
+  private Breakpoint _breakpoint = Breakpoint.Lg;
 
   private async Task HandleLogout()
   {
     await AuthService.LogoutAsync();
     await OpenChanged.InvokeAsync(false);
   }
+  private bool IsProfileRoute()
+  {
+    var currentUri = NavigationManager.Uri;
+    return currentUri.EndsWith("/profile") || currentUri.Contains("/profile/");
+  }
+
+  private string GetActiveClass()
+  {
+    var currentUri = NavigationManager.Uri;
+    return currentUri.Contains("/profile/account") ? "active" : string.Empty;
+  }
 }
+<style>
+  .mud-nav-link {
+    border-radius: 5px;
+  }
+
+  .active {
+    background: #092f52;
+  }
+
+  .active .mud-nav-link-text {
+    color: var(--mud-palette-primary);
+    font-weight: 500;
+  }
+
+  .mud-drawer-mini .mud-nav-link {
+    line-height: 1.75;
+  }
+</style>

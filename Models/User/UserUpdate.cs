@@ -34,6 +34,7 @@ public class UserUpdate
     ProfilePictureUrl = other.ProfilePictureUrl;
     ProfilePictureFile = other.ProfilePictureFile;
     ProfilePictureDisplay = other.ProfilePictureDisplay;
+    Preferences = other.Preferences;
   }
 
   public int Id { get; set; }
@@ -64,4 +65,5 @@ public class UserUpdate
   public string? ProfilePictureUrl { get; set; }
   public string? ProfilePictureFile { get; set; }
   public string? ProfilePictureDisplay { get; set; }
+  public Dictionary<string, string>? Preferences { get; set; }
 }

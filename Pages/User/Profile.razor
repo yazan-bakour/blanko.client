@@ -4,130 +4,78 @@
 @using Banko.Client.Models.User
 @using Banko.Client.Services
 @using Banko.Client.Services.User
+@using Banko.Client.Services.Auth
 @using Microsoft.AspNetCore.Authorization
 @using Banko.Client.Pages.User.settings
 @using System.Globalization
 @using Banko.Client.Components
 
+@inject NavigationManager NavigationManager
 @inject UserStateService UserState
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
+@inject IAuthService AuthService
 
 @attribute [Authorize]
 
 <PageTitle>Profile</PageTitle>
 
-<MudItem xs="12" Class="d-flex justify-content-start mb-3">
-  @if (_isEditing)
-  {
-    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
-      Disabled="LoadingService.IsLoading">Save Changes</MudButton>
-    <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CancelEdit" Disabled="LoadingService.IsLoading">
-      Cancel</MudButton>
-  }
-  else
-  {
-    <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.EditNote"
-      OnClick="StartEdit">Edit</MudButton>
-  }
-</MudItem>
-
-<MudCard Elevation="25" Class="pa-7 w-100">
-  <MudForm Model="@editParameters" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess">
+<MudForm Model="@editParameters" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess" Class="px-7 w-100">
+  <MudItem xs="12">
     <MudGrid Spacing="0">
-      <MudGrid Spacing="0">
-
-        <MudItem xs="12">
-          <MudGrid Spacing="0">
-            <MudItem xs="6" Class="d-flex flex-column">
-              <MudText Typo="Typo.h4" Color="Color.Primary" Class="mt-1 mud-width-full">
-                @editParameters.FullName
-              </MudText>
-              <MudText Typo="Typo.body1" Color="Color.Primary" Class="mt-1 mud-width-full">
-                @editParameters.UniqueId
-              </MudText>
-              <MudText Typo="Typo.caption" Class="mt-1">Joined:
-                @(editParameters.CreatedAt?.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") ?? "N/A")
-              </MudText>
-            </MudItem>
-
-            <MudItem xs="6" Class="d-flex justify-end">
-              <ImageSettings IsEditing="_isEditing" UserData="editParameters" OnImageUpdated="HandleImageUpdated" />
-            </MudItem>
-          </MudGrid>
+      <MudItem xs="6" Class="d-flex flex-column">
+        <MudText Typo="Typo.h5" Color="Color.Primary" Class="mt-1 mud-width-full">
+          @editParameters.FullName
+        </MudText>
+        <MudText Typo="Typo.body1" Color="Color.Primary" Class="mt-1 mud-width-full">
+          @editParameters.UniqueId
+        </MudText>
+        <MudText Typo="Typo.caption" Class="mt-1">Joined:
+          @(editParameters.CreatedAt?.ToLocalTime().ToString("MMMM dd, yyyy HH:mm") ?? "N/A")
+        </MudText>
+        <MudItem xs="12" Class="d-flex flex-column">
+          <MudText Typo="Typo.caption" Class="mt-1">Email: @editParameters.Email</MudText>
+          <MudText Typo="Typo.caption" Class="mt-1">Role: @editParameters.Role</MudText>
         </MudItem>
+      </MudItem>
 
-        <MudItem xs="12">
-          <MudText Typo="Typo.h6" Class="mb-3">Account Information</MudText>
+      <!---image settings-->
+      <MudItem xs="6" Class="d-flex justify-end mt-2">
+        <MudItem Class="d-flex flex-column align-items-center">
+          <ImageSettings UserData="editParameters" OnImageUpdated="HandleImageUpdated" />
 
-          <MudTextField Label="Email" @bind-Value="editParameters.Email" ReadOnly="true" Variant="Variant.Text"
-            FullWidth Class="mb-3" />
-          <MudTextField Label="Role" @bind-Value="editParameters.Role" ReadOnly="true" Variant="Variant.Text" FullWidth
-            Class="mb-3" />
-
-          <MudText Typo="Typo.h6" Class="mt-4 mb-3 mt-10">Personal Details</MudText>
-          <MudTextField Label="First Name" @bind-Value="editParameters.FirstName" Disabled="!_isEditing"
-            Variant="Variant.Filled" Class="mb-3" Required />
-          <MudTextField Label="Last Name" @bind-Value="editParameters.LastName" Disabled="!_isEditing"
-            Variant="Variant.Filled" Class="mb-3" Required />
-
-          <MudTextField Label="Password" @bind-Value="editParameters.NewPassword" Disabled="!_isEditing"
-            InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
-            AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
-            OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Variant="Variant.Filled" Class="mb-3"
-            Immediate="true" />
-
-          <MudDatePicker Class="mb-3" Label="Date of Birth" Editable="true" Disabled="!_isEditing"
-            Variant="Variant.Filled" Placeholder="Select Date of Birth" DateFormat="dd.MM.yyyy"
-            @bind-Date="editParameters.DateOfBirth" Mask="@(new DateMask("dd.MM.yyyy"))"
-            PickerVariant="PickerVariant.Dialog" />
-
-
-
-          @* <MudTextField Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" /> *@
-
-          <MudSelect T="UserGender ?" Label="Gender" @bind-Value="editParameters.Gender" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" Placeholder="Select Gender">
-            <MudSelectItem T="UserGender ?" Value="@(UserGender.Male)">Male</MudSelectItem>
-            <MudSelectItem T="UserGender ?" Value="@(UserGender.Female)">Female</MudSelectItem>
-          </MudSelect>
-
-          <MudTextField Label="Nationality" @bind-Value="editParameters.Nationality" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
-
-          <MudText Typo="Typo.h6" Class="mt-4 mb-3 mt-10">Contact Information</MudText>
-          <MudTextField Label="Phone Number" @bind-Value="editParameters.PhoneNumber" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
-          <MudTextField Label="Address" @bind-Value="editParameters.Address" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
-          <MudTextField Label="City" @bind-Value="editParameters.City" Disabled="!_isEditing" Variant="Variant.Filled"
-            FullWidth Class="mb-3" />
-          <MudTextField Label="State" @bind-Value="editParameters.State" Disabled="!_isEditing" Variant="Variant.Filled"
-            FullWidth Class="mb-3" />
-          <MudTextField Label="Zip Code" @bind-Value="editParameters.ZipCode" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
-          <MudTextField Label="Country" @bind-Value="editParameters.Country" Disabled="!_isEditing"
-            Variant="Variant.Filled" FullWidth Class="mb-3" />
-
-          <MudItem xs="12" Class="d-flex justify-end mt-4">
+          <MudItem Class="mt-2">
             @if (_isEditing)
             {
-              <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="HandleSaveAsync" Class="mr-2"
+              <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync"
                 Disabled="LoadingService.IsLoading">Save Changes</MudButton>
-              <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="CancelEdit"
-                Disabled="LoadingService.IsLoading">Cancel</MudButton>
-            }
-            else
-            {
-              <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="StartEdit">Edit Profile</MudButton>
+              <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+                Disabled="LoadingService.IsLoading">
+                Cancel</MudButton>
             }
           </MudItem>
         </MudItem>
-      </MudGrid>
+      </MudItem>
+
+      <!--Profile settings-->
+      <MudItem xs="12" Class="mt-4">
+        <MudButton Variant="Variant.Filled" Class="w-100 d-flex justify-start rounded-lg py-4"
+          OnClick="@(() => NavigationManager.NavigateTo("/profile/account"))">
+          <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.PermIdentity" />
+          <MudText>Personal details</MudText>
+        </MudButton>
+
+        <MudButton Variant="Variant.Filled" Class="w-100 d-flex justify-start rounded-lg py-4 mt-4"
+          OnClick="@(() => HandleLogout())">
+          <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.Logout" />
+          <MudText>Log out</MudText>
+        </MudButton>
+
+      </MudItem>
     </MudGrid>
-  </MudForm>
-</MudCard>
+
+  </MudItem>
+</MudForm>
 
 
 @code {
@@ -137,6 +85,11 @@
   private MudForm? form;
   private bool isSuccess = false;
   private bool _passwordVisible = false;
+
+  private async Task HandleLogout()
+  {
+    await AuthService.LogoutAsync();
+  }
 
   protected override async Task OnInitializedAsync()
   {
@@ -163,25 +116,15 @@
     editParameters = new UserUpdate
     {
       Id = user.Id,
+      FirstName = user.FirstName,
+      LastName = user.LastName,
       Email = user.Email,
       Role = user.Role,
       FullName = user.FullName,
-      FirstName = user.FirstName,
-      LastName = user.LastName,
-      PhoneNumber = user.PhoneNumber,
-      Address = user.Address,
-      City = user.City,
-      State = user.State,
-      ZipCode = user.ZipCode,
-      Country = user.Country,
-      DateOfBirth = user.DateOfBirth,
-      Nationality = user.Nationality,
-      Gender = user.Gender,
       UniqueId = user.UniqueId,
       CreatedAt = user.CreatedAt,
       ProfilePictureDisplay = user.ProfilePictureDisplay,
-      ProfilePictureUrl = user.ProfilePictureDisplay?.StartsWith("http") == true ?
-    user.ProfilePictureDisplay : null,
+      ProfilePictureUrl = user.ProfilePictureDisplay?.StartsWith("http") == true ? user.ProfilePictureDisplay : null,
       ProfilePictureFile = null
     };
 
@@ -191,6 +134,7 @@
 
   private void HandleImageUpdated(UserImageUploadResults updateResult)
   {
+    StartEdit();
     if (updateResult != null && !string.IsNullOrEmpty(updateResult.ImageData))
     {
       // Update the display image immediately

@@ -1,9 +1,9 @@
 :root {
-  --rui-color-grouped-background: #000d1a;
-  --rui-primary-dark: #001a33;
-  --rui-primary-medium: #00264d;
-  --rui-primary-light: #003366;
-  --rui-gradient-glow: radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%), 
+  --banko-color-grouped-background: #000d1a;
+  --banko-primary-dark: #001a33;
+  --banko-primary-medium: #00264d;
+  --banko-primary-light: #00468d; /* #003366 */
+  --banko-gradient-glow: radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%), 
                        radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%), 
                        radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%);
 }
@@ -15,8 +15,8 @@ html {
 
 body {
   height: 100%;
-  background-color: var(--rui-color-grouped-background, #000d1a);
-  background-image: linear-gradient(135deg, var(--rui-primary-dark) 0%, var(--rui-primary-medium) 50%, var(--rui-primary-light) 100%);
+  background-color: var(--banko-color-grouped-background, #000d1a);
+  background-image: linear-gradient(271deg, var(--banko-primary-dark) 20%, var(--banko-primary-medium) 50%, var(--banko-primary-light) 70%);
   background-attachment: fixed;
   position: relative;
   margin: 0;
@@ -29,7 +29,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background: var(--rui-gradient-glow);
+  background: var(--banko-gradient-glow);
   background-position: top right, bottom left, center center;
   background-size: 120% 120%, 120% 120%, 150% 150%;
   background-repeat: no-repeat;
@@ -39,6 +39,9 @@ body::before {
   animation: glow-shift 30s ease-in-out infinite alternate; /* Subtle animation */
 }
 
+.mud-input>input.mud-input-root, div.mud-input-slot.mud-input-root {
+  /* color: #757575; */
+}
 .mud-appbar {
   background: transparent;
   box-shadow: none;
@@ -49,9 +52,28 @@ body::before {
   box-shadow: none;
 }
 .mud-paper, .mud-expand-panel {
-  background: #10263b;
+  background: #092f52;
+  box-shadow: none;
+  /* border-radius: 10px; */
+}
+.mud-table {
+  background: transparent;
   box-shadow: none;
 }
+.mud-nav-link {
+  /* border-radius: 33px; */
+}
+.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
+  background: #092f52;
+}
+.mud-dialog {
+  background: #22486d;
+  box-shadow: none;
+  /* border-radius: 10px; */
+}
+.mud-button.mud-button-filled {
+    box-shadow: none !important;
+  }
 
 h1:focus {
   outline: none;

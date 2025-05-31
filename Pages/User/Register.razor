@@ -10,7 +10,7 @@
 @inject LoadingService LoadingService
 @inject AuthStateProvider AuthState
 
-<MudCard Elevation="25" Class="pa-4">
+<MudCard Class="pa-4">
   <MudCardContent>
     <MudForm Model="@registerModel" @ref="form" @bind-IsValid="@success">
       <MudTextField Label="Full Name" @bind-Value="registerModel.FullName" For="@(() => registerModel.FullName)"
@@ -21,8 +21,8 @@
         Immediate="true" Required />
     </MudForm>
   </MudCardContent>
-  <MudCardActions Class="d-flex justify-center">
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="px-8" Size="Size.Large" Disabled="@(!success)"
+  <MudCardActions Class="d-flex">
+    <MudButton Variant="Variant.Filled" Color="Color.Dark" Class="px-8 w-100" Size="Size.Large" Disabled="@(!success)"
       OnClick="HandleRegister">
       <MudText>Register</MudText>
     </MudButton>

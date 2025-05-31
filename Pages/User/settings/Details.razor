@@ -1,0 +1,173 @@
+@page "/profile/account"
+
+@using System
+@using Banko.Client.Models.User
+@using Banko.Client.Services
+@using Banko.Client.Services.User
+@using Microsoft.AspNetCore.Authorization
+
+@inject UserStateService UserState
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize]
+
+<MudForm Model="@detailsData" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess">
+  <MudItem Class="d-flex">
+    <MudLink Class="w-100 d-flex justify-start rounded-lg pb-2"
+      OnClick="@(() => NavigationManager.NavigateTo("/profile"))">
+      <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.KeyboardBackspace" />
+    </MudLink>
+
+    <MudItem Class="d-flex justify-end">
+      @if (_isEditing)
+      {
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="HandleSaveAsync" Class="mr-2"
+          Disabled="LoadingService.IsLoading">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+          Disabled="LoadingService.IsLoading">Cancel</MudButton>
+      }
+      else
+      {
+        <MudButton Variant="Variant.Filled" OnClick="StartEdit">Edit</MudButton>
+      }
+    </MudItem>
+  </MudItem>
+
+  <MudItem Class="d-flex flex-column">
+    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Personal Details</MudText>
+    <MudTextField Label="First Name" @bind-Value="detailsData.FirstName" Disabled="!_isEditing" Variant="Variant.Filled"
+      Class="mb-3" Required />
+    <MudTextField Label="Last Name" @bind-Value="detailsData.LastName" Disabled="!_isEditing" Variant="Variant.Filled"
+      Class="mb-3" Required />
+
+    <MudTextField Label="Password" @bind-Value="detailsData.NewPassword" Disabled="!_isEditing"
+      InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
+      AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+      OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Variant="Variant.Filled" Class="mb-3"
+      Immediate="true" />
+
+    <MudDatePicker Class="mb-3" Label="Date of Birth" Editable="true" Disabled="!_isEditing" Variant="Variant.Filled"
+      Placeholder="Select Date of Birth" DateFormat="dd.MM.yyyy" @bind-Date="detailsData.DateOfBirth"
+      Mask="@(new DateMask("dd.MM.yyyy"))" PickerVariant="PickerVariant.Dialog" />
+
+    <MudSelect T="UserGender ?" Label="Gender" @bind-Value="detailsData.Gender" Disabled="!_isEditing"
+      Variant="Variant.Filled" FullWidth Class="mb-3" AnchorOrigin="Origin.BottomCenter">
+      <MudSelectItem T="UserGender ?" Value="@(UserGender.Male)">Male</MudSelectItem>
+      <MudSelectItem T="UserGender ?" Value="@(UserGender.Female)">Female</MudSelectItem>
+    </MudSelect>
+
+    <MudTextField Label="Nationality" @bind-Value="detailsData.Nationality" Disabled="!_isEditing"
+      Variant="Variant.Filled" FullWidth Class="mb-3" />
+
+    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-4 mb-3">Contact Information</MudText>
+    <MudTextField Label="Phone Number" @bind-Value="detailsData.PhoneNumber" Disabled="!_isEditing"
+      Variant="Variant.Filled" FullWidth Class="mb-3" />
+    <MudTextField Label="Address" @bind-Value="detailsData.Address" Disabled="!_isEditing" Variant="Variant.Filled"
+      FullWidth Class="mb-3" />
+    <MudTextField Label="City" @bind-Value="detailsData.City" Disabled="!_isEditing" Variant="Variant.Filled" FullWidth
+      Class="mb-3" />
+    <MudTextField Label="State" @bind-Value="detailsData.State" Disabled="!_isEditing" Variant="Variant.Filled"
+      FullWidth Class="mb-3" />
+    <MudTextField Label="Zip Code" @bind-Value="detailsData.ZipCode" Disabled="!_isEditing" Variant="Variant.Filled"
+      FullWidth Class="mb-3" />
+    <MudTextField Label="Country" @bind-Value="detailsData.Country" Disabled="!_isEditing" Variant="Variant.Filled"
+      FullWidth Class="mb-3" />
+  </MudItem>
+</MudForm>
+
+@code {
+  private UserUpdate detailsData = new UserUpdate();
+  private UserUpdate originalDetailsData = new UserUpdate();
+  private bool _isEditing = false;
+  private MudForm? form;
+  private bool isSuccess = false;
+  private bool _passwordVisible = false;
+
+  protected override async Task OnInitializedAsync()
+  {
+    await LoadDetailsData();
+  }
+
+  private async Task LoadDetailsData()
+  {
+    await UserState.LoadUserDataAsync();
+    var user = UserState.CurrentUser?.User;
+    if (user == null) return;
+
+    // Create a new UserUpdate instance with ONLY the details-specific fields
+    detailsData = new UserUpdate
+    {
+      Email = user.Email,
+      FullName = user.FullName,
+      Id = user.Id,
+      FirstName = user.FirstName,
+      LastName = user.LastName,
+      PhoneNumber = user.PhoneNumber,
+      Address = user.Address,
+      City = user.City,
+      State = user.State,
+      ZipCode = user.ZipCode,
+      Country = user.Country,
+      DateOfBirth = user.DateOfBirth,
+      Nationality = user.Nationality,
+      Gender = user.Gender,
+      NewPassword = string.Empty
+    };
+
+    // Create a backup for cancel operations
+    originalDetailsData = new UserUpdate(detailsData);
+  }
+
+  private void StartEdit()
+  {
+    originalDetailsData = new UserUpdate(detailsData);
+    _isEditing = true;
+  }
+
+  private async Task HandleSaveAsync()
+  {
+    if (form == null) return;
+
+    LoadingService.IsLoading = true;
+    await form.Validate();
+
+    if (form.IsValid)
+    {
+      try
+      {
+        bool success = await UserState.UpdateProfileSettingsAsync(detailsData);
+
+        if (success)
+        {
+          _isEditing = false;
+          // Reload details data to refresh the UI
+          await LoadDetailsData();
+          Snackbar.Add("Account details updated successfully!", Severity.Success);
+        }
+        else
+        {
+          Snackbar.Add("Failed to update account details.", Severity.Error);
+        }
+      }
+      catch (Exception ex)
+      {
+        Snackbar.Add($"Error updating account details: {ex.Message}", Severity.Error);
+      }
+    }
+    else
+    {
+      Snackbar.Add("Please correct validation errors.", Severity.Warning);
+    }
+
+    LoadingService.IsLoading = false;
+  }
+
+  private void CancelEdit()
+  {
+    detailsData = new UserUpdate(originalDetailsData);
+    _isEditing = false;
+    StateHasChanged();
+  }
+}
