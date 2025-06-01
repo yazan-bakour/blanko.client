@@ -2,6 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace Banko.Client.Models.User
 {
+  public class Preference
+  {
+    public bool Theme { get; set; }
+  }
   public enum UserRole
   {
     Admin,
@@ -14,12 +18,12 @@ namespace Banko.Client.Models.User
     Female
   }
 
-  public class UserRead
+  public record UserRead
   {
     public string Token { get; set; } = string.Empty;
     public UserData User { get; set; } = new UserData();
   }
-  public class UserData
+  public record UserData
   {
     public Dictionary<string, string>? Preferences { get; set; }
     public int Id { get; set; }
@@ -29,8 +33,8 @@ namespace Banko.Client.Models.User
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public UserRole? Role { get; set; }
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
+    public string? FirstName { get; set; } = null;
+    public string? LastName { get; set; } = null;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
@@ -47,5 +51,6 @@ namespace Banko.Client.Models.User
     public bool IsVerified { get; set; }
     public string? UniqueId { get; set; }
     public string? ProfilePictureDisplay { get; set; }
+    public string? ProfilePictureUrl { get; set; }
   }
 }

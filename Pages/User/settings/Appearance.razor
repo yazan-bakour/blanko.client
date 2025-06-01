@@ -1,15 +1,32 @@
 @page "/profile/appearance"
 
+@using Banko.Client.Models.User
 @using Banko.Client.Services.User
+@using Banko.Client.Services
+
 @inject UserStateService UserState
+@inject LoadingService LoadingService
+@inject ISnackbar Snackbar
 
 <MudPaper Class="pa-4 mt-4">
-  <MudText Typo="Typo.h5">Appearance Settings</MudText>
+  <MudItem xs="12" Class="d-flex justify-space-between">
+    <MudText Typo="Typo.h5">Appearance Settings</MudText>
+    @if (_darkModeLocal != _originalDarkMode)
+    {
+      <MudItem>
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
+          Disabled="LoadingService.IsLoading">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+          Disabled="LoadingService.IsLoading">
+          Cancel</MudButton>
+      </MudItem>
+    }
+  </MudItem>
 
   <MudGrid Class="mt-4">
     <MudItem xs="12">
-      <MudSwitch @bind-Value="darkModeObject" Color="Color.Primary" Converter="(new ObjectToBoolConverter())">
-        @(UserState.IsDarkMode ? "Dark Mode" : "Light Mode")
+      <MudSwitch T="bool" @bind-value="_darkModeLocal" Color="Color.Primary">
+        @(_darkModeLocal ? "Dark Mode" : "Light Mode")
       </MudSwitch>
 
       <MudText Typo="Typo.body2" Class="mt-1">
@@ -18,82 +35,69 @@
     </MudItem>
   </MudGrid>
 </MudPaper>
-
+@_darkModeLocal
+@_originalDarkMode
 @code {
-  public object darkModeObject
-  {
-    get => UserState.IsDarkMode;
-    set
-    {
-      if (value is bool boolValue)
-      {
-        _ = OnDarkModeChangedAsync(boolValue);
-      }
-    }
-  }
+  private bool _darkModeLocal;
+  private bool _originalDarkMode;
 
-  public class ObjectToBoolConverter : BoolConverter<object>
+  protected override async Task OnInitializedAsync()
   {
-    public ObjectToBoolConverter()
-    {
-      SetFunc = OnSet;
-      GetFunc = OnGet;
-    }
+    LoadingService.IsLoading = true;
+    // Ensure user data and preferences are loaded, which populates UserState.CurrentUser
+    await UserState.LoadUserDataAsync(); 
 
-    private object OnGet(bool? value)
+    // Initialize local state directly from CurrentUser.User.Preferences
+    var currentUser = UserState.CurrentUser;
+    bool currentThemePreference = false; // Default to false (light mode)
+
+    if (currentUser?.User?.Preferences != null &&
+        currentUser.User.Preferences.TryGetValue("DarkMode", out var darkModeValueStr) &&
+        bool.TryParse(darkModeValueStr, out var parsedValue))
     {
-      try
-      {
-        return value == true;
-      }
-      catch (Exception e)
-      {
-        UpdateGetError("Conversion error: " + e.Message);
-        return default;
-      }
+      currentThemePreference = parsedValue;
+      Console.WriteLine($"Appearance.razor: Initialized DarkMode from CurrentUser.User.Preferences: {currentThemePreference}");
+    }
+    else
+    {
+      // Fallback or log if preference not found in CurrentUser.User.Preferences
+      // For consistency, you might want to check UserState.Preference.Theme here as a secondary fallback
+      // or rely on a system default if UserState.Preference.Theme is also not definitive.
+      // currentThemePreference = UserState.Preference.Theme; // Example secondary fallback
+      Console.WriteLine($"Appearance.razor: DarkMode not found in CurrentUser.User.Preferences. Defaulting to: {currentThemePreference}. Consider checking UserState.Preference.Theme as fallback.");
     }
 
-    private bool? OnSet(object arg)
+    _darkModeLocal = currentThemePreference;
+    _originalDarkMode = currentThemePreference;
+    
+    LoadingService.IsLoading = false;
+    // StateHasChanged(); // Not strictly necessary here as Blazor handles it after OnInitializedAsync
+  }
+
+  private async Task HandleSaveAsync()
+  {
+    LoadingService.IsLoading = true;
+    // Create a Preference object with the new theme value to send to the service.
+    // This part remains the same as UserState.UpdatePreference expects a Preference object.
+    var preferenceToUpdate = new Preference { Theme = _darkModeLocal };
+    var success = await UserState.UpdatePreference(preferenceToUpdate);
+    
+    if (success)
     {
-      if (arg == null)
-        return null;
-      try
-      {
-        if (arg is bool)
-          return (bool)arg;
-        else if (arg is bool?)
-          return (bool?)arg;
-        else
-        {
-          UpdateSetError("Unable to convert to bool? from type object");
-          return null;
-        }
-      }
-      catch (FormatException e)
-      {
-        UpdateSetError("Conversion error: " + e.Message);
-        return null;
-      }
+      _originalDarkMode = _darkModeLocal; // Update the original value to the new saved state
+      Snackbar.Add("Appearance settings saved.", Severity.Success);
     }
+    else
+    {
+      _darkModeLocal = _originalDarkMode; // Revert to the original value if save failed
+      Snackbar.Add("Failed to update appearance settings.", Severity.Error);
+    }
+    LoadingService.IsLoading = false;
   }
 
-  protected override void OnInitialized()
+  private void CancelEdit()
   {
-    UserState.OnDarkModeChanged += HandleDarkModeChanged;
-  }
-
-  private async Task OnDarkModeChangedAsync(bool value)
-  {
-    await UserState.UpdateDarkModePreferenceAsync(value);
-  }
-
-  private void HandleDarkModeChanged(bool darkModeValue)
-  {
-    StateHasChanged();
-  }
-
-  public void Dispose()
-  {
-    UserState.OnDarkModeChanged -= HandleDarkModeChanged;
+    // Revert local changes to their original state
+    _darkModeLocal = _originalDarkMode;
   }
 }

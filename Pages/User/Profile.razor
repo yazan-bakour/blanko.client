@@ -9,6 +9,7 @@
 @using Banko.Client.Pages.User.settings
 @using System.Globalization
 @using Banko.Client.Components
+@using Banko.Client.Extensions;
 
 @inject NavigationManager NavigationManager
 @inject UserStateService UserState
@@ -84,124 +85,77 @@
   private bool _isEditing = false;
   private MudForm? form;
   private bool isSuccess = false;
-  private bool _passwordVisible = false;
 
   private async Task HandleLogout()
   {
     await AuthService.LogoutAsync();
   }
 
-  protected override async Task OnInitializedAsync()
+  protected override void OnInitialized()
   {
-    // When UserState changes, update our local copy if we're not in edit mode
-    if (!_isEditing && UserState.CurrentUser != null)
-    {
-      await PopulateFromCurrentUser();
-      StateHasChanged();
-    }
-  }
-  private void HandleLoadError(Exception ex)
-  {
-    // Handle load error - perhaps show a more specific error or retry option
-    Snackbar.Add($"Failed to load profile data: {ex.Message}", Severity.Error);
-  }
-
-  private async Task PopulateFromCurrentUser()
-  {
-    await UserState.LoadUserDataAsync();
     var user = UserState.CurrentUser?.User;
     if (user == null) return;
-
-    // Create a new UserUpdate instance and populate from UserRead
-    editParameters = new UserUpdate
-    {
-      Id = user.Id,
-      FirstName = user.FirstName,
-      LastName = user.LastName,
-      Email = user.Email,
-      Role = user.Role,
-      FullName = user.FullName,
-      UniqueId = user.UniqueId,
-      CreatedAt = user.CreatedAt,
-      ProfilePictureDisplay = user.ProfilePictureDisplay,
-      ProfilePictureUrl = user.ProfilePictureDisplay?.StartsWith("http") == true ? user.ProfilePictureDisplay : null,
-      ProfilePictureFile = null
-    };
-
-    // Create a backup for cancel operations
+    editParameters = UserState.CurrentUser?.ToUserUpdate() ?? new UserUpdate();
     originalParameters = new UserUpdate(editParameters);
-  }
-
-  private void HandleImageUpdated(UserImageUploadResults updateResult)
-  {
-    StartEdit();
-    if (updateResult != null && !string.IsNullOrEmpty(updateResult.ImageData))
-    {
-      // Update the display image immediately
-      editParameters.ProfilePictureDisplay = updateResult.ImageData;
-
-      // Update the source property based on where the image came from
-      if (updateResult.ImageSource == ImageSource.Url)
-      {
-        editParameters.ProfilePictureUrl = updateResult.ImageData;
-        editParameters.ProfilePictureFile = null;
-      }
-      else // File
-      {
-        editParameters.ProfilePictureFile = updateResult.ImageData;
-        editParameters.ProfilePictureUrl = null;
-      }
-    }
-    StateHasChanged();
   }
 
   private void StartEdit()
   {
-    originalParameters = new UserUpdate(editParameters);
     _isEditing = true;
+    originalParameters = new UserUpdate(editParameters);
   }
-  private async Task HandleSaveAsync()
-  {
-    if (form == null) return;
-
-    LoadingService.IsLoading = true;
-    await form.Validate();
-
-    if (form.IsValid)
-    {
-      try
-      {
-        bool success = await UserState.UpdateProfileSettingsAsync(editParameters);
-
-        if (success)
-        {
-          _isEditing = false;
-          // Reload user data to refresh the UI with the latest values from the server
-          await PopulateFromCurrentUser();
-          Snackbar.Add("Profile updated successfully!", Severity.Success);
-        }
-        else
-        {
-          Snackbar.Add("Failed to update profile.", Severity.Error);
-        }
-      }
-      catch (Exception ex)
-      {
-        Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
-      }
-    }
-    else
-    {
-      Snackbar.Add("Please correct validation errors.", Severity.Warning);
-    }
-
-    LoadingService.IsLoading = false;
-  }
-
   private void CancelEdit()
   {
     editParameters = new UserUpdate(originalParameters);
     _isEditing = false;
+  }
+
+  private void HandleImageUpdated(UserImageUploadResults updateResult)
+  {
+    Console.WriteLine($"Image updated: {updateResult?.ImageData}");
+    _isEditing = true;
+    if (updateResult != null && !string.IsNullOrEmpty(updateResult.ImageData))
+    {
+      editParameters.ProfilePictureDisplay = updateResult.ImageData;
+      editParameters.ProfilePictureUrl = updateResult.ImageData;
+    }
     StateHasChanged();
+  }
+
+  private async Task HandleSaveAsync()
+  {
+    if (form == null) return;
+
+    await form.Validate();
+    if (!form.IsValid)
+    {
+      Snackbar.Add("Please correct validation errors.", Severity.Warning);
+      return;
+    }
+    LoadingService.IsLoading = true;
+
+    try
+    {
+      bool success = await UserState.UpdateProfileSettingsAsync(editParameters);
+      Console.WriteLine($"editParameters: {editParameters.ProfilePictureUrl}");
+
+      if (success)
+      {
+        _isEditing = false;
+        Snackbar.Add("Profile updated successfully.", Severity.Success);
+      }
+      else
+      {
+        Snackbar.Add("Failed to update profile.", Severity.Error);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error updating profile: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
   }
 }

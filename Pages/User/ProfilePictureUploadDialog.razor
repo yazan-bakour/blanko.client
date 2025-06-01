@@ -56,7 +56,7 @@
   </DialogContent>
   <DialogActions>
     <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="CompleteSelection"
-      Disabled="(string.IsNullOrWhiteSpace(imageUrl) && selectedFile == null) || isUploading">
+      Disabled="(string.IsNullOrWhiteSpace(imageUrl)) || isUploading">
       @if (isUploading)
       {
         <MudProgressCircular Indeterminate="true" Size="Size.Small" />
@@ -76,11 +76,11 @@
   [Parameter] public string CurrentImageUrl { get; set; } = string.Empty;
 
   private string imageUrl = string.Empty;
-  private IBrowserFile? selectedFile;
+  @* private IBrowserFile? selectedFile; *@
   private bool isUploading = false;
-  private string? uploadError = null;
-  private string? previewImageBase64 = null;
-  private const long MaxFileSize = 2 * 1024 * 1024;
+  @* private string? uploadError = null; *@
+  @* private string? previewImageBase64 = null; *@
+  @* private const long MaxFileSize = 2 * 1024 * 1024; *@
 
   protected override void OnInitialized()
   {
@@ -89,7 +89,7 @@
 
   private void CompleteSelection()
   {
-    uploadError = null;
+    @* uploadError = null; *@
 
     if (!string.IsNullOrWhiteSpace(imageUrl))
     {
@@ -104,13 +104,13 @@
       }
       else
       {
-        uploadError = "Invalid URL format. Please enter a valid HTTP/HTTPS URL.";
+        @* uploadError = "Invalid URL format. Please enter a valid HTTP/HTTPS URL."; *@
         StateHasChanged();
       }
       return;
     }
 
-    uploadError = "Please provide either an image URL or select a file.";
+    @* uploadError = "Please provide either an image URL or select a file."; *@
     StateHasChanged();
   }
 

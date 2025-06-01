@@ -59,39 +59,67 @@
     },
     LayoutProperties = new LayoutProperties()
     {
-      @* AppbarHeight = "64px", *@
-      @* DrawerWidthLeft = "260px",
-      DrawerWidthRight = "300px" *@
+      DrawerWidthLeft = "200px",
     }
   };
 
-  protected override void OnInitialized()
+  protected override async Task OnInitializedAsync()
   {
-    UserStateService.OnDarkModeChanged += HandleDarkModeChanged;
-    base.OnInitialized();
+    UserStateService.OnUserStateChanged += HandleUserStateChanged;
+    @* await UserStateService.LoadUserDataAsync(); *@
+    await SetDarkModeFromPreferencesAsync();
   }
-
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
     {
-      var systemPreference = await _mudThemeProvider!.GetSystemPreference();
-      _isDarkMode = UserStateService.IsDarkMode || systemPreference;
-      if (!UserStateService.CurrentUser?.User.Preferences?.ContainsKey("DarkMode") == true)
+      if (UserStateService.CurrentUser?.User?.Preferences == null)
       {
-        await UserStateService.UpdateDarkModePreferenceAsync(_isDarkMode);
+        _isDarkMode = await _mudThemeProvider!.GetSystemPreference();
+        StateHasChanged();
       }
-      StateHasChanged();
     }
   }
-  private void HandleDarkModeChanged(bool isDarkMode)
+  private async void HandleUserStateChanged()
   {
-    _isDarkMode = isDarkMode;
-    StateHasChanged();
+    await InvokeAsync(async () =>
+    {
+      await SetDarkModeFromPreferencesAsync();
+      StateHasChanged();
+    });
   }
-  public bool IsDarkMode() => _isDarkMode;
-  public void ToggleDarkMode()
+
+  private async Task SetDarkModeFromPreferencesAsync()
   {
-    UserStateService.OnDarkModeChanged -= HandleDarkModeChanged;
+    bool darkModeToSet;
+    var currentUser = UserStateService.CurrentUser;
+
+    if (currentUser?.User?.Preferences != null &&
+    currentUser.User.Preferences.TryGetValue("DarkMode", out var darkModeValueStr) &&
+    bool.TryParse(darkModeValueStr, out var userPreference))
+    {
+      darkModeToSet = userPreference;
+    }
+    else
+    {
+      if (_mudThemeProvider != null)
+      {
+        darkModeToSet = await _mudThemeProvider.GetSystemPreference();
+      }
+      else
+      {
+        darkModeToSet = false;
+      }
+    }
+
+    if (_isDarkMode != darkModeToSet)
+    {
+      _isDarkMode = darkModeToSet;
+    }
+  }
+
+  public void Dispose()
+  {
+    UserStateService.OnUserStateChanged -= HandleUserStateChanged;
   }
 }

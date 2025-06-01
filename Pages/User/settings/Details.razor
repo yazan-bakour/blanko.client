@@ -1,6 +1,7 @@
 @page "/profile/account"
 
 @using System
+@using Banko.Client.Extensions
 @using Banko.Client.Models.User
 @using Banko.Client.Services
 @using Banko.Client.Services.User
@@ -23,7 +24,7 @@
     <MudItem Class="d-flex justify-end">
       @if (_isEditing)
       {
-        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="HandleSaveAsync" Class="mr-2"
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
           Disabled="LoadingService.IsLoading">Cancel</MudButton>
@@ -87,36 +88,10 @@
 
   protected override async Task OnInitializedAsync()
   {
-    await LoadDetailsData();
-  }
-
-  private async Task LoadDetailsData()
-  {
     await UserState.LoadUserDataAsync();
     var user = UserState.CurrentUser?.User;
     if (user == null) return;
-
-    // Create a new UserUpdate instance with ONLY the details-specific fields
-    detailsData = new UserUpdate
-    {
-      Email = user.Email,
-      FullName = user.FullName,
-      Id = user.Id,
-      FirstName = user.FirstName,
-      LastName = user.LastName,
-      PhoneNumber = user.PhoneNumber,
-      Address = user.Address,
-      City = user.City,
-      State = user.State,
-      ZipCode = user.ZipCode,
-      Country = user.Country,
-      DateOfBirth = user.DateOfBirth,
-      Nationality = user.Nationality,
-      Gender = user.Gender,
-      NewPassword = string.Empty
-    };
-
-    // Create a backup for cancel operations
+    detailsData = UserState.CurrentUser?.ToUserUpdate() ?? new UserUpdate();
     originalDetailsData = new UserUpdate(detailsData);
   }
 
@@ -143,7 +118,7 @@
         {
           _isEditing = false;
           // Reload details data to refresh the UI
-          await LoadDetailsData();
+          @* await LoadDetailsData(); *@
           Snackbar.Add("Account details updated successfully!", Severity.Success);
         }
         else

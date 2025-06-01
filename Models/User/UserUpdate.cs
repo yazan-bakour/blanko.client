@@ -4,7 +4,6 @@ namespace Banko.Client.Models.User;
 
 public class UserUpdate
 {
-
   public UserUpdate() { }
 
   public UserUpdate(UserUpdate other)
@@ -31,22 +30,21 @@ public class UserUpdate
     Gender = other.Gender;
     IsVerified = other.IsVerified;
     UniqueId = other.UniqueId;
-    ProfilePictureUrl = other.ProfilePictureUrl;
-    ProfilePictureFile = other.ProfilePictureFile;
     ProfilePictureDisplay = other.ProfilePictureDisplay;
+    ProfilePictureFile = other.ProfilePictureFile;
     Preferences = other.Preferences;
   }
 
   public int Id { get; set; }
-  public string? NewPassword { get; set; }
+  public string? NewPassword { get; set; } = null;
   public string FullName { get; set; } = string.Empty;
   public string Email { get; set; } = string.Empty;
   public DateTime? CreatedAt { get; set; }
 
   [JsonConverter(typeof(JsonStringEnumConverter))]
   public UserRole? Role { get; set; }
-  public string FirstName { get; set; } = string.Empty;
-  public string LastName { get; set; } = string.Empty;
+  public string? FirstName { get; set; } = null;
+  public string? LastName { get; set; } = null;
   public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
   public string? PhoneNumber { get; set; }
   public string? Address { get; set; }

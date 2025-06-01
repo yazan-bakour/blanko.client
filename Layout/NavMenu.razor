@@ -8,7 +8,7 @@
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@Open" Variant="@DrawerVariant.Persistent" Breakpoint="@_breakpoint">
+<MudDrawer @bind-Open="@Open" Variant="@DrawerVariant.Persistent" Breakpoint="@_breakpoint" Class="left-drawer">
   <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
@@ -94,6 +94,10 @@
   }
 }
 <style>
+  .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
+    left: 20px;
+  }
+
   .mud-nav-link {
     border-radius: 5px;
   }

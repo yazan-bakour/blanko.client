@@ -1,25 +1,68 @@
 using Banko.Client.Models.User;
 using Banko.Client.Helper;
+using Banko.Client.Extensions;
 
 namespace Banko.Client.Services.User;
 
 public class UserStateService(IUserService userService, ICacheValidator<UserRead> cacheValidator)
 {
   public event Action? OnUserStateChanged;
-  public event Action<bool>? OnDarkModeChanged;
   public UserRead? CurrentUser => cacheValidator.Data;
-  private bool _isDarkMode;
-  public bool IsDarkMode
+  public Preference Preference { get; } = new Preference();
+
+  private UserUpdate MapToUserUpdate(Action<UserUpdate> updateAction)
   {
-    get => _isDarkMode;
-    private set
+    if (CurrentUser?.User == null) throw new InvalidOperationException("No current user available to update.");
+
+    var toUpdate = CurrentUser.ToUserUpdate();
+
+    updateAction(toUpdate);
+
+    return toUpdate;
+  }
+
+  public async Task<bool> UpdateProfileSettingsAsync(UserUpdate partialUpdate)
+  {
+    var mapping = MapToUserUpdate(update =>
     {
-      if (_isDarkMode != value)
-      {
-        _isDarkMode = value;
-        OnDarkModeChanged?.Invoke(_isDarkMode);
-      }
-    }
+      update.FirstName = partialUpdate.FirstName;
+      update.LastName = partialUpdate.LastName;
+      update.PhoneNumber = partialUpdate.PhoneNumber;
+      update.UpdatedAt = DateTime.UtcNow;
+      update.Address = partialUpdate.Address;
+      update.City = partialUpdate.City;
+      update.State = partialUpdate.State;
+      update.ZipCode = partialUpdate.ZipCode;
+      update.Country = partialUpdate.Country;
+      update.DateOfBirth = partialUpdate.DateOfBirth;
+      update.LastLogin = partialUpdate.LastLogin;
+      update.Nationality = partialUpdate.Nationality;
+      update.Gender = partialUpdate.Gender;
+      update.ProfilePictureDisplay = partialUpdate.ProfilePictureDisplay;
+      update.ProfilePictureUrl = partialUpdate.ProfilePictureUrl;
+    });
+    await userService.UpdateUserProfileAsync(mapping);
+    var user = await userService.GetCurrentUserProfileAsync();
+    cacheValidator.UpdateCache(true, user);
+    NotifyUserStateChanged();
+    return true;
+  }
+
+  public async Task<bool> UpdatePreference(Preference preference)
+  {
+    var mapping = MapToUserUpdate(update =>
+    {
+      update.Preferences ??= new Dictionary<string, string>();
+
+      update.Preferences["DarkMode"] = preference.Theme.ToString();
+      //enhance this
+    });
+    Preference.Theme = preference.Theme;
+    await userService.UpdateUserProfileAsync(mapping);
+    var user = await userService.GetCurrentUserProfileAsync();
+    cacheValidator.UpdateCache(true, user);
+    NotifyUserStateChanged();
+    return true;
   }
 
   public async Task LoadUserDataAsync()
@@ -27,10 +70,6 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
 
     if (cacheValidator.IsInitialized && cacheValidator.Data != null)
     {
-      if (CurrentUser?.User.Preferences?.ContainsKey("DarkMode") == true)
-      {
-        IsDarkMode = Convert.ToBoolean(CurrentUser.User.Preferences["DarkMode"]);
-      }
       NotifyUserStateChanged();
       return;
     }
@@ -41,10 +80,6 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
       if (userData != null)
       {
         cacheValidator.UpdateCache(true, userData);
-        if (userData.User.Preferences?.ContainsKey("DarkMode") == true)
-        {
-          IsDarkMode = Convert.ToBoolean(userData.User.Preferences["DarkMode"]);
-        }
         NotifyUserStateChanged();
       }
       else
@@ -57,53 +92,6 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
       cacheValidator.UpdateCache(false, null);
       throw;
     }
-  }
-
-  /// <summary>
-  /// Calls the API to update user settings and then refreshes the local user state.
-  /// </summary>
-  /// <param name="userUpdate">The user update DTO containing the changes.</param>
-  /// <returns>True if the update was successful and state was refreshed, false otherwise.</returns>
-  public async Task<bool> UpdateProfileSettingsAsync(UserUpdate userUpdate)
-  {
-    cacheValidator.UpdateCache(false, null);
-    try
-    {
-      var updatedUserFromApi = await userService.UpdateUserProfileAsync(userUpdate);
-      if (updatedUserFromApi != null)
-      {
-        await LoadUserDataAsync();
-        NotifyUserStateChanged();
-        return true;
-      }
-      return false;
-    }
-    catch
-    {
-      return false;
-    }
-  }
-  /// <summary>
-  /// Updates the dark mode preference and persists it to the user profile
-  /// </summary>
-  public async Task<bool> UpdateDarkModePreferenceAsync(bool isDarkMode)
-  {
-    IsDarkMode = isDarkMode;
-
-    // If user is logged in, save preference to their profile
-    if (CurrentUser != null)
-    {
-      var userUpdate = new UserUpdate
-      {
-        // Include other necessary fields from CurrentUser
-        Preferences = CurrentUser.User.Preferences ?? new Dictionary<string, string>()
-      };
-
-      userUpdate.Preferences["DarkMode"] = isDarkMode.ToString();
-      return await UpdateProfileSettingsAsync(userUpdate);
-    }
-
-    return true;
   }
 
   private void NotifyUserStateChanged()

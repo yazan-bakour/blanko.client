@@ -22,8 +22,7 @@
               </ActivatorContent>
 
               <ChildContent>
-                <MudMenuItem Icon="@Icons.Material.Filled.Settings" StartIcon="@Icons.Material.TwoTone.Settings"
-                  IconColor="Color.Primary" Label="Settings" />
+                <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary" Label="Settings" />
 
                 <MudDivider />
 
@@ -47,9 +46,6 @@
 
 @code {
   private bool _open = true;
-  private Origin _anchor = Origin.BottomCenter;
-  private Origin _transform = Origin.TopRight;
-  private DropdownWidth _dropdownWidth = DropdownWidth.Ignore;
   private void ToggleDrawer()
   {
     _open = !_open;
