@@ -54,11 +54,11 @@
         {
           <!-- Default navigation items -->
           <MudNavLink Match="NavLinkMatch.All" Href="/">Dashboard</MudNavLink>
-          <MudNavLink Href="profile">Profile</MudNavLink>
+          @* <MudNavLink Href="profile">Profile</MudNavLink> *@
           <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
           <MudNavLink Href="transactions">Transactions</MudNavLink>
           <MudNavLink Href="funds">Funds</MudNavLink>
-          <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink>
+          @* <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink> *@
         }
       </Authorized>
       <NotAuthorized>

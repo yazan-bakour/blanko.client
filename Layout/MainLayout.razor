@@ -10,7 +10,7 @@
   @if (!IsProfileRoute())
   {
     <MudAppBar Dense="true">
-      <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end px-3">
+      <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end">
         <AuthorizeView>
           <Authorized>
             <MudMenu Variant="Variant.Text" Size="Size.Large" Class="ml-2" AnchorOrigin="Origin.BottomRight"
@@ -22,7 +22,8 @@
               </ActivatorContent>
 
               <ChildContent>
-                <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary" Label="Settings" />
+                <MudMenuItem Icon="@Icons.Material.Filled.Settings" IconColor="Color.Primary" Label="Settings"
+                  Href="/profile" />
 
                 <MudDivider />
 

@@ -1,6 +1,9 @@
-﻿@using Banko.Client.Services.User
+﻿@using Banko.Client.Models.User
+@using Banko.Client.Services.User
 
-@inject UserStateService UserStateService
+@inject UserStateService UserState
+@inject LoadingService LoadingService
+@inject AuthenticationStateProvider AuthStateProvider
 @inject LoadingService LoadingService
 
 <LoadingIndicator />
@@ -28,13 +31,14 @@
   </Router>
 </CascadingAuthenticationState>
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@_isDarkMode" Theme="MyCustomTheme" />
+<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="MyCustomTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 @code {
-  private bool _isDarkMode;
+  private bool IsDark;
+
   private MudThemeProvider? _mudThemeProvider;
   MudTheme MyCustomTheme = new MudTheme()
   {
@@ -54,72 +58,33 @@
       TextDisabled = Colors.Gray.Darken1,
       Surface = Colors.Indigo.Darken3,
       Background = Colors.Indigo.Darken4,
-
-
     },
     LayoutProperties = new LayoutProperties()
     {
       DrawerWidthLeft = "200px",
     }
   };
-
   protected override async Task OnInitializedAsync()
   {
-    UserStateService.OnUserStateChanged += HandleUserStateChanged;
-    @* await UserStateService.LoadUserDataAsync(); *@
-    await SetDarkModeFromPreferencesAsync();
-  }
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
+    LoadingService.IsLoading = true;
+    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+    if (authState.User.Identity?.IsAuthenticated == true)
     {
-      if (UserStateService.CurrentUser?.User?.Preferences == null)
-      {
-        _isDarkMode = await _mudThemeProvider!.GetSystemPreference();
-        StateHasChanged();
-      }
+      await UserState.LoadUserDataAsync();
+      IsDark = UserState.Preference.Theme;
     }
-  }
-  private async void HandleUserStateChanged()
-  {
-    await InvokeAsync(async () =>
-    {
-      await SetDarkModeFromPreferencesAsync();
-      StateHasChanged();
-    });
+    LoadingService.IsLoading = false;
+    UserState.OnUserStateChanged += OnUserStateChanged;
   }
 
-  private async Task SetDarkModeFromPreferencesAsync()
+  private void OnUserStateChanged()
   {
-    bool darkModeToSet;
-    var currentUser = UserStateService.CurrentUser;
-
-    if (currentUser?.User?.Preferences != null &&
-    currentUser.User.Preferences.TryGetValue("DarkMode", out var darkModeValueStr) &&
-    bool.TryParse(darkModeValueStr, out var userPreference))
-    {
-      darkModeToSet = userPreference;
-    }
-    else
-    {
-      if (_mudThemeProvider != null)
-      {
-        darkModeToSet = await _mudThemeProvider.GetSystemPreference();
-      }
-      else
-      {
-        darkModeToSet = false;
-      }
-    }
-
-    if (_isDarkMode != darkModeToSet)
-    {
-      _isDarkMode = darkModeToSet;
-    }
+    IsDark = UserState.Preference.Theme;
+    StateHasChanged();
   }
 
   public void Dispose()
   {
-    UserStateService.OnUserStateChanged -= HandleUserStateChanged;
+    UserState.OnUserStateChanged -= OnUserStateChanged;
   }
 }

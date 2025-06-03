@@ -53,9 +53,7 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
     var mapping = MapToUserUpdate(update =>
     {
       update.Preferences ??= new Dictionary<string, string>();
-
       update.Preferences["DarkMode"] = preference.Theme.ToString();
-      //enhance this
     });
     Preference.Theme = preference.Theme;
     await userService.UpdateUserProfileAsync(mapping);
@@ -94,7 +92,7 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
     }
   }
 
-  private void NotifyUserStateChanged()
+  public void NotifyUserStateChanged()
   {
     OnUserStateChanged?.Invoke();
   }
