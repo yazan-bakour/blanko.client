@@ -28,10 +28,6 @@
       <MudSwitch T="bool" Color="Color.Primary" Value="UserState.Preference.Theme" ValueChanged="OnThemeSwitchChanged">
         @(UserState.Preference.Theme ? "Dark Mode" : "Light Mode")
       </MudSwitch>
-
-      <MudText Typo="Typo.body2" Class="mt-1">
-        Switch between light and dark theme for the application.
-      </MudText>
     </MudItem>
   </MudGrid>
 </MudPaper>
@@ -40,10 +36,22 @@
   private bool _originalTheme;
   protected override async Task OnInitializedAsync()
   {
-    LoadingService.IsLoading = true;
-    await UserState.LoadUserDataAsync();
-    _originalTheme = UserState.Preference.Theme;
-    LoadingService.IsLoading = false;
+    try
+    {
+      LoadingService.IsLoading = true;
+      await UserState.LoadUserDataAsync();
+      var darkMode = GetDarkModePreference();
+      UserState.Preference.Theme = darkMode;
+      _originalTheme = darkMode;
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error subscribing to UserState.OnUserStateChanged: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
   }
   private void OnThemeSwitchChanged(bool newValue)
   {
