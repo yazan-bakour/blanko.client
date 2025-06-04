@@ -26,6 +26,10 @@
         }
       </Authorized>
       <NotAuthorized>
+        @if (!NavigationManager.Uri.EndsWith("login", StringComparison.OrdinalIgnoreCase))
+        {
+          NavigationManager.NavigateTo("/login", true);
+        }
         <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
       </NotAuthorized>
     </AuthorizeView>
@@ -45,8 +49,8 @@
             Account</MudNavLink>
           <MudNavLink Icon="@Icons.Material.Outlined.PrivacyTip" Href="profile/privacy">
             Privacy</MudNavLink>
-          <MudNavLink Icon="@Icons.Material.Outlined.EditNotifications" Href="profile/notification">Notification
-          </MudNavLink>
+          @* <MudNavLink Icon="@Icons.Material.Outlined.EditNotifications" Href="profile/notification">Notification
+          </MudNavLink> *@
           <MudNavLink Icon="@Icons.Material.Outlined.Palette" Href="profile/appearance">
             Appearance</MudNavLink>
         }
@@ -57,7 +61,7 @@
           @* <MudNavLink Href="profile">Profile</MudNavLink> *@
           <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
           <MudNavLink Href="transactions">Transactions</MudNavLink>
-          <MudNavLink Href="funds">Funds</MudNavLink>
+          @* <MudNavLink Href="funds">Funds</MudNavLink> *@
           @* <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink> *@
         }
       </Authorized>

@@ -1,0 +1,96 @@
+@page "/profile/privacy"
+
+@using Banko.Client.Models.User;
+@using Banko.Client.Services.User
+@using Banko.Client.Services
+@inject UserStateService UserState
+@inject LoadingService LoadingService
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-4 mt-4">
+  <MudItem xs="12" Class="d-flex justify-space-between">
+    <MudText Typo="Typo.h5">Privacy</MudText>
+
+    @if (UserState.Preference.Privacy != _originalHideEmail)
+    {
+      <MudItem>
+        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleEmailSaveAsync" Class="mr-2"
+          Disabled="LoadingService.IsLoading">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+          Disabled="LoadingService.IsLoading">
+          Cancel</MudButton>
+      </MudItem>
+    }
+  </MudItem>
+
+  <MudGrid Class="mt-4">
+    <MudItem xs="12">
+      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail">
+        @(UserState.Preference.Privacy ? "Hide Email" : "Show Email")
+      </MudSwitch>
+    </MudItem>
+  </MudGrid>
+</MudPaper>
+
+@code {
+  private bool _originalHideEmail;
+
+  protected override async Task OnInitializedAsync()
+  {
+    try
+    {
+      LoadingService.IsLoading = true;
+      await UserState.LoadUserDataAsync();
+      var privacy = GetPrivacy();
+      UserState.Preference.Privacy = privacy;
+      _originalHideEmail = privacy;
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error subscribing to UserState.OnUserStateChanged: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+    }
+  }
+  private bool GetPrivacy()
+  {
+    return UserState.CurrentUser?.User?.Preferences?
+    .GetValueOrDefault("HideEmail") is string value &&
+    bool.TryParse(value, out var result) ? result : false;
+  }
+  private void SwitchHideEmail(bool newValue)
+  {
+    UserState.Preference.Privacy = newValue;
+    UserState.NotifyUserStateChanged();
+  }
+  private async Task HandleEmailSaveAsync()
+  {
+    LoadingService.IsLoading = true;
+    var success = await UserState.UpdatePreference(UserState.Preference);
+    if (success)
+    {
+      _originalHideEmail = UserState.Preference.Privacy;
+      Snackbar.Add("Privacy updated.", Severity.Success);
+    }
+    else
+    {
+      Snackbar.Add("Failed to update privacy settings.", Severity.Error);
+    }
+    LoadingService.IsLoading = false;
+  }
+  private void CancelEdit()
+  {
+    UserState.Preference.Privacy = GetPrivacy();
+    HandleUserStateChanged();
+  }
+  private void HandleUserStateChanged()
+  {
+    InvokeAsync(StateHasChanged);
+  }
+  public void Dispose()
+  {
+    UserState.OnUserStateChanged -= HandleUserStateChanged;
+  }
+}

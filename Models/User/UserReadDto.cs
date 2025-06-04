@@ -4,6 +4,7 @@ namespace Banko.Client.Models.User
 {
   public class Preference
   {
+    public bool Privacy { get; set; }
     public bool Theme { get; set; }
   }
   public enum UserRole

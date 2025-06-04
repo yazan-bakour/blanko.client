@@ -52,10 +52,13 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
   {
     var mapping = MapToUserUpdate(update =>
     {
-      update.Preferences ??= new Dictionary<string, string>();
+      update.Preferences = CurrentUser?.User?.Preferences ?? new Dictionary<string, string>();
       update.Preferences["DarkMode"] = preference.Theme.ToString();
+      update.Preferences["HideEmail"] = preference.Privacy.ToString();
     });
     Preference.Theme = preference.Theme;
+    Preference.Privacy = preference.Privacy;
+
     await userService.UpdateUserProfileAsync(mapping);
     var user = await userService.GetCurrentUserProfileAsync();
     cacheValidator.UpdateCache(true, user);
