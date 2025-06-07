@@ -1,0 +1,90 @@
+@page "/"
+@using Banko.Client.Models.Transaction
+@using Banko.Client.Services
+@using Banko.Client.Services.Transaction
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
+@using Banko.Client.Pages.Main
+
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject TransactionStateService TransactionState
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+
+<MudItem Class="relative overflow-hidden">
+  <MudDrawerContainer Class="mud-height-full">
+    <MudDrawer Class="mud-drawer-account" @bind-Open="@_open" Anchor="Anchor.Right" Elevation="0"
+      Variant="@DrawerVariant.Persistent">
+      <MudDrawerHeader Class="d-flex align-center p-0">
+        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="@ToggleDrawer"
+          aria-label="Toggle drawer" />
+        <MudText Typo="Typo.h6">Account details</MudText>
+      </MudDrawerHeader>
+      <MudItem>
+        <MudStack Spacing="3">
+
+          <MudTextField T="string" Label="Beneficiary" Variant="Variant.Outlined" ReadOnly="true"
+            Adornment="Adornment.End" IconSize="Size.Small" AdornmentIcon="@Icons.Material.Filled.ContentCopy" />
+
+
+          <MudDivider Class="my-2" />
+
+          <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Color="Color.Warning" Class="mt-1" />
+            <MudText Typo="Typo.body2">Use these details to receive your salary and transfers from a Euro bank
+              account.
+            </MudText>
+          </MudStack>
+
+          <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Settings" Color="Color.Primary" Class="mt-1" />
+            <MudText Typo="Typo.body2">
+              Give these details to merchants to set up Direct Debits and automatically pay off your recurring bills.
+            </MudText>
+          </MudStack>
+
+          <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Info" Class="mt-1" />
+            <MudText Typo="Typo.body2">If the sending bank supports instant payments, the payment will arrive in a few
+              seconds. Otherwise, it will take up to 2 working days.</MudText>
+          </MudStack>
+        </MudStack>
+      </MudItem>
+    </MudDrawer>
+    <MainPage @bind-Open="_open" ToggleDrawer="@ToggleDrawer" />
+  </MudDrawerContainer>
+</MudItem>
+
+@code
+{
+  private bool _open = false;
+  [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+  private void ToggleDrawer()
+  {
+    _open = !_open;
+  }
+  private async Task CopyToClipboardAsync(string text)
+  {
+    await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+    Snackbar.Add("Copied to clipboard!", Severity.Success, config => { config.ShowCloseIcon = false; });
+  }
+
+  private void ShareDetails()
+  {
+    // Basic placeholder. Real implementation might use Web Share API if available.
+    Snackbar.Add("Share details functionality placeholder.", Severity.Info);
+  }
+}
+<style>
+  .mud-drawer-account {
+    padding: 8px;
+    border-radius: var(--mud-default-borderradius);
+    color: var(--mud-palette-text-primary);
+    background-color: var(--mud-palette-surface);
+  }
+</style>

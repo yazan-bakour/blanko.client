@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace Banko.Client.Models.Account;
+
 public class AccountCreate
 
 {
@@ -10,4 +11,5 @@ public class AccountCreate
   public decimal Balance { get; set; }
 
   public AccountType Type { get; set; }
+  // personal or contact
 }

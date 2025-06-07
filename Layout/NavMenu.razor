@@ -26,7 +26,8 @@
         }
       </Authorized>
       <NotAuthorized>
-        @if (!NavigationManager.Uri.EndsWith("login", StringComparison.OrdinalIgnoreCase))
+        @if (!NavigationManager.Uri.EndsWith("login", StringComparison.OrdinalIgnoreCase) &&
+                !NavigationManager.Uri.EndsWith("register", StringComparison.OrdinalIgnoreCase))
         {
           NavigationManager.NavigateTo("/login", true);
         }
@@ -57,8 +58,8 @@
         else
         {
           <!-- Default navigation items -->
-          <MudNavLink Match="NavLinkMatch.All" Href="/">Dashboard</MudNavLink>
-          @* <MudNavLink Href="profile">Profile</MudNavLink> *@
+          <MudNavLink Match="NavLinkMatch.All" Href="/">Home</MudNavLink>
+          <MudNavLink Href="dashboard">Dashboard</MudNavLink>
           <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
           <MudNavLink Href="transactions">Transactions</MudNavLink>
           @* <MudNavLink Href="funds">Funds</MudNavLink> *@
@@ -97,25 +98,3 @@
     return currentUri.Contains("/profile/account") ? "active" : string.Empty;
   }
 }
-<style>
-  .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
-    left: 20px;
-  }
-
-  .mud-nav-link {
-    border-radius: 5px;
-  }
-
-  .active {
-    background: #092f52;
-  }
-
-  .active .mud-nav-link-text {
-    color: var(--mud-palette-primary);
-    font-weight: 500;
-  }
-
-  .mud-drawer-mini .mud-nav-link {
-    line-height: 1.75;
-  }
-</style>

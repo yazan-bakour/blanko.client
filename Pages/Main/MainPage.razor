@@ -1,0 +1,157 @@
+@using Banko.Client.Models.Transaction
+@using Banko.Client.Services
+@using Banko.Client.Services.Transaction
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
+
+@inject ISnackbar Snackbar
+@inject LoadingService LoadingService
+@inject TransactionStateService TransactionState
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Home</PageTitle>
+
+<MudItem xs="12" Class="pr-2">
+  <!-- Header Section -->
+  <MudItem xs="12">
+    <MudPaper Elevation="0" Class="d-flex justify-space-between align-center pa-2 mb-2">
+      <MudStack Spacing="0">
+        @* TODO: Replace with actual dynamic balance and account info *@
+        <MudText Typo="Typo.h5">€90.23</MudText> 
+        <MudText Typo="Typo.body2" Color="Color.Dark">Personal - EUR</MudText>
+      </MudStack>
+      <MudStack Row="true" Spacing="1">
+        <MudButton Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Payment" IconColor="Color.Primary">Pay</MudButton>
+        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@StatementDialog" StartIcon="@Icons.Material.Filled.Description" IconColor="Color.Primary">Statement</MudButton>
+        <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="@ToggleDrawer" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" IconColor="Color.Primary">Account details</MudButton>
+      </MudStack>
+    </MudPaper>
+  </MudItem>
+
+  <!-- Transactions List Section -->
+  <MudItem xs="12">
+    @if (LoadingService.IsLoading && (!transactions?.Any() ?? true))
+    {
+      <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mx-auto my-4" />
+    }
+    else if (transactions != null && transactions.Any())
+    {
+      @foreach (var transaction in transactions)
+      {
+        <MudPaper Outlined="true" Class="pa-3 mb-2">
+          <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+              <MudAvatar Rounded="true" Color="@GetTransactionStatusColor(transaction.Status)" Class="mr-3">
+                <MudText Typo="Typo.body2">@GetTransactionInitials(transaction.Description)</MudText>
+              </MudAvatar>
+              <MudStack Spacing="0">
+                <MudText Typo="Typo.body1">@transaction.Description</MudText>
+                <MudStack Row="true">
+                  <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.Status.ToString()</MudText>
+                  <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.CreatedAt.ToLocalTime().ToString("MMM dd, hh:mm tt")</MudText>
+                  <MudText Typo="Typo.caption" Class="d-block d-sm-inline"> - @(transaction?.TransactionNumber)</MudText>
+                </MudStack>
+              </MudStack>
+            </MudStack>
+
+            <MudStack Spacing="0" AlignItems="AlignItems.End">
+                <MudText Typo="Typo.body1" Color="@(transaction.Amount < 0 ? Color.Error : Color.Success)">
+                  @((transaction.Amount < 0 ? "-" : "+") + transaction.Currency + Math.Abs(transaction.Amount).ToString("N2"))
+                </MudText>
+            </MudStack>
+          </MudStack>
+        </MudPaper>
+      }
+      <MudItem Class="d-flex justify-center mt-4">
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="NavigateToAllTransactions">See all</MudButton>
+      </MudItem>
+    }
+    else
+    {
+      <MudAlert Severity="Severity.Info">No transactions to display.</MudAlert>
+    }
+  </MudItem>
+</MudItem>
+
+@code {
+  [Parameter] public bool Open { get; set; }
+  [Parameter] public EventCallback<bool> OpenChanged { get; set; }
+  [Parameter] public EventCallback ToggleDrawer { get; set; }
+  private TransactionRead[]? transactions => TransactionState.CurrentTransactions ?? Array.Empty<TransactionRead>();
+
+  protected override async Task OnInitializedAsync()
+  {
+    TransactionState.OnTransactionStateChanged += HandleStateChange;
+    if (transactions != null && !transactions.Any())
+    {
+      await LoadInitialTransactionsAsync();
+    }
+  }
+  
+  private async Task LoadInitialTransactionsAsync()
+  {
+    LoadingService.IsLoading = true;
+    StateHasChanged(); // Update UI to show loader
+    try
+    {
+      await TransactionState.InitializeTransactionStateAsync(); 
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading transactions: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task StatementDialog()
+  {
+    var parameters = new DialogParameters {};
+    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, NoHeader = true }; // NoHeader since we provide TitleContent
+    await DialogService.ShowAsync<MudDialog>("", parameters, options); // Title in parameters
+  }
+
+  private void HandleStateChange()
+  {
+    InvokeAsync(StateHasChanged);
+  }
+
+  private Color GetTransactionStatusColor(TransactionStatus status) => status switch
+  {
+    TransactionStatus.Completed => Color.Success,
+    TransactionStatus.Pending => Color.Info,
+    TransactionStatus.Created => Color.Info,
+    TransactionStatus.Failed => Color.Error,
+    TransactionStatus.Cancelled => Color.Warning,
+    TransactionStatus.Refunded => Color.Primary,
+    TransactionStatus.Disputed => Color.Secondary,
+    _ => Color.Dark
+  };
+
+  private string GetTransactionInitials(string? description)
+  {
+    if (string.IsNullOrWhiteSpace(description)) return "T";
+    
+    var parts = description.Split(new[] { ' ', '-' }, StringSplitOptions.RemoveEmptyEntries);
+    if (parts.Length == 0) return description.Substring(0, Math.Min(description.Length, 1)).ToUpper();
+    
+    if (parts.Length == 1) return parts[0].Substring(0, Math.Min(parts[0].Length, 2)).ToUpper();
+    
+    return $"{parts[0][0]}{parts[1][0]}".ToUpper();
+  }
+  
+  private void NavigateToAllTransactions()
+  {
+    NavigationManager.NavigateTo("/transactions");
+  }
+  
+  public void Dispose()
+  {
+    TransactionState.OnTransactionStateChanged -= HandleStateChange;
+  }
+}

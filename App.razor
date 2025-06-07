@@ -1,5 +1,6 @@
 ﻿@using Banko.Client.Models.User
 @using Banko.Client.Services.User
+@using MudBlazor.Utilities
 
 @inject UserStateService UserState
 @inject LoadingService LoadingService
@@ -44,9 +45,24 @@
   {
     PaletteLight = new PaletteLight()
     {
-      Primary = Colors.Blue.Default,
-      Secondary = Colors.Green.Accent4,
-      AppbarBackground = Colors.Red.Default,
+      Primary = Colors.LightBlue.Darken1,
+      Secondary = Colors.Indigo.Darken2,
+      @* Surface = new MudColor(Colors.Blue.Lighten5).SetAlpha(0.1).ToString(MudColorOutputFormats.RGBA), *@
+      Surface = Colors.Blue.Lighten5,
+      TextPrimary = Colors.Gray.Darken4,
+      @* TextDisabled = Colors.Gray.Darken1, *@
+      DrawerText = Colors.Gray.Lighten1,
+      DrawerIcon = Colors.Gray.Lighten1,
+      LinesInputs = Colors.Gray.Darken2,
+      Divider = Colors.Gray.Darken2,
+      TableLines = Colors.Gray.Darken1,
+      @* ActionDefault = "rgba(255, 255, 255, 0.17)", *@
+      @* ActionDisabledBackground = "rgba(255, 255, 255, 0.12)", *@
+      @* RippleOpacitySecondary = 0.80, *@
+      @* HoverOpacity = 0.80, *@
+      LinesDefault = Colors.Gray.Darken2,
+      AppbarBackground = "#000d1a",
+      Background = "#000d1a",
     },
     PaletteDark = new PaletteDark()
     {
@@ -56,12 +72,14 @@
       Info = Colors.Blue.Accent1,
       AppbarBackground = Colors.Red.Lighten5,
       TextDisabled = Colors.Gray.Darken1,
-      Surface = Colors.Indigo.Darken3,
-      Background = Colors.Indigo.Darken4,
+      Surface = "#092f52",
+      @* ActionDefault = "rgba(255, 255, 255, 0.17)",
+      ActionDisabledBackground = "rgba(255, 255, 255, 0.12)",
+      RippleOpacitySecondary = 0.40, *@
     },
     LayoutProperties = new LayoutProperties()
     {
-      DrawerWidthLeft = "200px",
+      DrawerWidthRight = "300px",
     }
   };
   protected override async Task OnInitializedAsync()

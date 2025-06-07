@@ -14,10 +14,11 @@
 <MudCard Class="pa-4">
   <MudCardContent>
     <MudForm Model="@loginParameters" @ref="form" @bind-IsValid="@success">
-      <MudTextField Class="mb-2" Label="Email" @bind-Value="loginParameters.Email" For="@(() => loginParameters.Email)"
-        Immediate="true" Required />
-      <MudTextField Label="Password" @bind-Value="loginParameters.Password" For="@(() => loginParameters.Password)"
-        InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
+      <MudTextField AdornmentColor="Color.Secondary" Class="mb-2" Label="Email" @bind-Value="loginParameters.Email"
+        For="@(() => loginParameters.Email)" Immediate="true" Required />
+      <MudTextField AdornmentColor="Color.Secondary" Label="Password" @bind-Value="loginParameters.Password"
+        For="@(() => loginParameters.Password)" InputType="@(_passwordVisible? InputType.Text: InputType.Password)"
+        Adornment="Adornment.End"
         AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
         OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Immediate="true" Required />
     </MudForm>

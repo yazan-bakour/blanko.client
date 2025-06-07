@@ -10,6 +10,8 @@ namespace Banko.Client.Models.Account
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public AccountType Type { get; set; }
     public string AccountNumber { get; set; } = string.Empty;
+
+    // public string Bic { get; set; } = string.Empty;
     public decimal Balance { get; set; } = 0.0m;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

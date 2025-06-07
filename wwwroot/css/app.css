@@ -20,7 +20,6 @@ body {
   background-attachment: fixed;
   position: relative;
   margin: 0;
-  overflow-x: hidden;
 }
 body::before {
   content: "";
@@ -38,9 +37,29 @@ body::before {
   pointer-events: none; /* Ensure it doesn't interfere with page interactions */
   animation: glow-shift 30s ease-in-out infinite alternate; /* Subtle animation */
 }
+  .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
+    left: 20px;
+  }
+
+  .mud-nav-link {
+    border-radius: 5px;
+  }
+
+  .active {
+    background: #092f52;
+  }
+
+  .active .mud-nav-link-text {
+    color: var(--mud-palette-primary);
+    font-weight: 500;
+  }
+
+  .mud-drawer-mini .mud-nav-link {
+    line-height: 1.75;
+  }
 
 .mud-input>input.mud-input-root, div.mud-input-slot.mud-input-root {
-  /* color: #757575; */
+  color: #757575;
 }
 .mud-appbar {
   background: transparent;
@@ -52,16 +71,16 @@ body::before {
   box-shadow: none;
 }
 .mud-paper, .mud-expand-panel {
-  background: #092f52;
+  /* background: #092f52; */
   box-shadow: none;
-  /* border-radius: 10px; */
 }
+.mud-popover {
+    width: 200px;
+    background: #17538d;
+  }
 .mud-table {
   background: transparent;
   box-shadow: none;
-}
-.mud-nav-link {
-  /* border-radius: 33px; */
 }
 .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
   background: #092f52;
@@ -69,7 +88,6 @@ body::before {
 .mud-dialog {
   background: #22486d;
   box-shadow: none;
-  /* border-radius: 10px; */
 }
 .mud-button.mud-button-filled {
     box-shadow: none !important;
