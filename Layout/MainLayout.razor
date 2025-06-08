@@ -39,7 +39,7 @@
   }
   <NavMenu @bind-Open="_open" />
   <MudMainContent Class="@GetMainContentClass()">
-    <MudContainer MaxWidth="MaxWidth.Large" Style="@($"color:{Colors.LightBlue.Lighten1};")">
+    <MudContainer MaxWidth="MaxWidth.Large">
       @Body
     </MudContainer>
   </MudMainContent>
@@ -54,6 +54,7 @@
   private async Task HandleLogout()
   {
     await AuthService.LogoutAsync();
+    NavigationManager.NavigateTo("/login", true);
   }
   private bool IsProfileRoute()
   {

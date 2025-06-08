@@ -65,23 +65,29 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
     NotifyUserStateChanged();
     return true;
   }
-
   public async Task LoadUserDataAsync()
   {
-
-    if (cacheValidator.IsInitialized && cacheValidator.Data != null)
-    {
-      NotifyUserStateChanged();
-      return;
-    }
-
     try
     {
       var userData = await userService.GetCurrentUserProfileAsync();
       if (userData != null)
       {
         cacheValidator.UpdateCache(true, userData);
-        NotifyUserStateChanged();
+
+        if (userData.User?.Preferences != null)
+        {
+          if (userData.User.Preferences.TryGetValue("DarkMode", out var darkModeValue) &&
+              bool.TryParse(darkModeValue, out var isDark))
+          {
+            Preference.Theme = isDark;
+          }
+
+          if (userData.User.Preferences.TryGetValue("HideEmail", out var hideEmailValue) &&
+              bool.TryParse(hideEmailValue, out var shouldHide))
+          {
+            Preference.Privacy = shouldHide;
+          }
+        }
       }
       else
       {
@@ -92,6 +98,10 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
     {
       cacheValidator.UpdateCache(false, null);
       throw;
+    }
+    finally
+    {
+      NotifyUserStateChanged();
     }
   }
 

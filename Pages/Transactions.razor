@@ -4,6 +4,7 @@
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Services
 @using Banko.Client.Services.Transaction
+@using Banko.Client.Helper
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
@@ -35,44 +36,46 @@ else
       <MudExpansionPanel>
         <TitleContent>
           <MudStack Row="true" Justify="Justify.SpaceBetween" Class="width-100 align-items-center pr-1">
-            <MudText Typo="Typo.body1">@transaction.Type - @transaction.Amount.ToString("C2") (@transaction.Currency)
-            </MudText>
-            <MudText Typo="Typo.caption">@transaction.TransactionDate.ToLocalTime().ToString("g")</MudText>
-          </MudStack>
-        </TitleContent>
-        <ChildContent>
-          <MudGrid Class="justify-space-between">
-            @* Column 1: Core Transaction Details *@
-            <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true" ReadOnly="true">
-                <MudListItem Icon="@Icons.Material.Filled.ConfirmationNumber">Transaction #: @transaction.TransactionNumber
-                </MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.Payment">Amount: @transaction.Amount.ToString("C2")</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.Abc">Type: @transaction.Type</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.CreditCard">Method: @transaction.PaymentMethod</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.SyncAlt">Status: <MudChip Label="true"
-                    Color="@GetTransactionStatusColor(transaction.Status)" Size="Size.Small">@transaction.Status</MudChip>
-                </MudListItem>
-              </MudList>
-            </MudItem>
-            @* Column 2: Account & Date Details *@
-            <MudItem xs="12" md="5">
-              <MudList T="string" Dense="true" ReadOnly="true">
-                <MudListItem Icon="@Icons.Material.Filled.ArrowForward">From: @transaction.SourceName
-                  (@transaction.SourceAccountNumber)</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.ArrowBack">To: @transaction.RecipientName
-                  (@transaction.DestinationAccountNumber)</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.MonetizationOn">Currency: @transaction.Currency</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.CalendarToday">Date:
-                  @transaction.TransactionDate.ToLocalTime().ToString("g")</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.Update">Created:
-                  @transaction.CreatedAt.ToLocalTime().ToString("g")</MudListItem>
-                <MudListItem Icon="@Icons.Material.Filled.EditCalendar">Updated:
-                  @(transaction.UpdatedAt?.ToLocalTime().ToString("g") ?? "N/A")</MudListItem>
-              </MudList>
-            </MudItem>
-            @* Description Row *@
-            @if (!string.IsNullOrWhiteSpace(transaction.Description))
+            <MudText Typo="Typo.body1">@transaction.Type - @CurrencyFormatter.FormatCurrencySymbol(transaction.Amount,
+                        transaction.Currency.ToString())
+        </MudText>
+        <MudText Typo="Typo.caption">@transaction.TransactionDate.ToLocalTime().ToString("g")</MudText>
+      </MudStack>
+    </TitleContent>
+    <ChildContent>
+      <MudGrid Class="justify-space-between">
+        @* Column 1: Core Transaction Details *@
+        <MudItem xs="12" md="5">
+          <MudList T="string" Dense="true" ReadOnly="true">
+            <MudListItem Icon="@Icons.Material.Filled.ConfirmationNumber">Transaction #: @transaction.TransactionNumber
+            </MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.Payment">Amount: @transaction.Amount.ToString("C2")</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.Abc">Type: @transaction.Type</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.CreditCard">Method: @transaction.PaymentMethod</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.SyncAlt">Status: <MudChip Label="true"
+                Color="@FormatUtilities.GetStatusColor(transaction.Status)" Size="Size.Small">@transaction.Status
+              </MudChip>
+            </MudListItem>
+          </MudList>
+        </MudItem>
+        @* Column 2: Account & Date Details *@
+        <MudItem xs="12" md="5">
+          <MudList T="string" Dense="true" ReadOnly="true">
+            <MudListItem Icon="@Icons.Material.Filled.ArrowForward">From: @transaction.SourceName
+              (@transaction.SourceAccountNumber)</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.ArrowBack">To: @transaction.RecipientName
+              (@transaction.DestinationAccountNumber)</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.MonetizationOn">Currency: @transaction.Currency</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.CalendarToday">Date:
+              @transaction.TransactionDate.ToLocalTime().ToString("g")</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.Update">Created:
+              @transaction.CreatedAt.ToLocalTime().ToString("g")</MudListItem>
+            <MudListItem Icon="@Icons.Material.Filled.EditCalendar">Updated:
+              @(transaction.UpdatedAt?.ToLocalTime().ToString("g") ?? "N/A")</MudListItem>
+          </MudList>
+        </MudItem>
+        @* Description Row *@
+        @if (!string.IsNullOrWhiteSpace(transaction.Description))
             {
               <MudItem xs="12">
                 <MudText Typo="Typo.subtitle2">Description</MudText>
@@ -122,16 +125,4 @@ else
   {
     TransactionState.OnTransactionStateChanged -= HandleStateChange;
   }
-  private Color GetTransactionStatusColor(TransactionStatus status) => status switch
-  {
-    TransactionStatus.Completed => Color.Success,
-    TransactionStatus.Pending => Color.Info,
-    TransactionStatus.Created => Color.Default,
-    TransactionStatus.Failed => Color.Error,
-    TransactionStatus.Cancelled => Color.Warning,
-    TransactionStatus.Refunded => Color.Primary,
-    TransactionStatus.Disputed => Color.Secondary,
-    _ => Color.Dark
-  };
-
 }

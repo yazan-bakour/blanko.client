@@ -1,10 +1,17 @@
 @namespace Banko.Client.Components
-
 @inject NavigationManager NavigationManager
 
 @code {
   protected override void OnInitialized()
   {
-    NavigationManager.NavigateTo("/login", forceLoad: true);
+    var currentUri = NavigationManager.Uri;
+    var uri = new Uri(currentUri);
+    var path = uri.AbsolutePath.ToLowerInvariant();
+
+    if (!path.EndsWith("/login") && !path.EndsWith("/register"))
+    {
+      var returnUrl = Uri.EscapeDataString(currentUri);
+      NavigationManager.NavigateTo($"/login?returnUrl={returnUrl}", true);
+    }
   }
 }

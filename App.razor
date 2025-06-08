@@ -10,6 +10,9 @@
 <LoadingIndicator />
 
 <CascadingAuthenticationState>
+
+  <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="MyCustomTheme" />
+
   <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
       <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -32,7 +35,6 @@
   </Router>
 </CascadingAuthenticationState>
 
-<MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="MyCustomTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -79,26 +81,31 @@
     },
     LayoutProperties = new LayoutProperties()
     {
-      DrawerWidthRight = "300px",
+      @* DrawerWidthRight = "300px", *@
     }
   };
   protected override async Task OnInitializedAsync()
   {
     LoadingService.IsLoading = true;
+
+    UserState.OnUserStateChanged += OnUserStateChanged;
     var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+
     if (authState.User.Identity?.IsAuthenticated == true)
     {
       await UserState.LoadUserDataAsync();
       IsDark = UserState.Preference.Theme;
     }
     LoadingService.IsLoading = false;
-    UserState.OnUserStateChanged += OnUserStateChanged;
   }
 
   private void OnUserStateChanged()
   {
-    IsDark = UserState.Preference.Theme;
-    StateHasChanged();
+    if (IsDark != UserState.Preference.Theme)
+    {
+      IsDark = UserState.Preference.Theme;
+      InvokeAsync(StateHasChanged);
+    }
   }
 
   public void Dispose()

@@ -8,7 +8,8 @@
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@Open" Variant="@DrawerVariant.Persistent" Breakpoint="@_breakpoint" Class="left-drawer">
+<MudDrawer @bind-Open="@Open" Overlay="false" Breakpoint="@Breakpoint.Md" Elevation="0"
+  Variant="@DrawerVariant.Responsive">
   <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
@@ -22,7 +23,7 @@
         }
         else
         {
-          <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
+          <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
         }
       </Authorized>
       <NotAuthorized>
@@ -58,10 +59,10 @@
         else
         {
           <!-- Default navigation items -->
-          <MudNavLink Match="NavLinkMatch.All" Href="/">Home</MudNavLink>
-          <MudNavLink Href="dashboard">Dashboard</MudNavLink>
-          <MudNavLink Href=@($"account/{userId}")>Account</MudNavLink>
-          <MudNavLink Href="transactions">Transactions</MudNavLink>
+          <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/">Home</MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Filled.Dashboard" Href="dashboard">Dashboard</MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Filled.AccountBalance" Href=@($"account/{userId}")>Account</MudNavLink>
+          <MudNavLink Icon="@Icons.Material.Filled.Receipt" Href="transactions">Transactions</MudNavLink>
           @* <MudNavLink Href="funds">Funds</MudNavLink> *@
           @* <MudNavLink @onclick="() => HandleLogout()">Logout</MudNavLink> *@
         }
@@ -79,7 +80,6 @@
   public bool Open { get; set; }
   [Parameter]
   public EventCallback<bool> OpenChanged { get; set; }
-  private Breakpoint _breakpoint = Breakpoint.Lg;
 
   private async Task HandleLogout()
   {

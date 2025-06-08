@@ -46,6 +46,7 @@
       try
       {
         await AuthState.Login(loginParameters);
+        await UserState.LoadUserDataAsync();
         Snackbar.Add("Login successful!", Severity.Success);
         NavigationManager.NavigateTo("");
       }

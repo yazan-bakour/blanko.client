@@ -37,8 +37,8 @@ body::before {
   pointer-events: none; /* Ensure it doesn't interfere with page interactions */
   animation: glow-shift 30s ease-in-out infinite alternate; /* Subtle animation */
 }
-  .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
-    left: 20px;
+  .mud-drawer.mud-drawer-temporary.mud-drawer-pos-left.mud-drawer--open {
+    /* left: 20px; */
   }
 
   .mud-nav-link {
@@ -172,6 +172,9 @@ h1:focus {
   }
   .responsive-height-item > div {
     height: 100%;
+  }
+  .mud-drawer.mud-drawer-responsive.mud-drawer-pos-left.mud-drawer--open, .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
+    left: 20px;
   }
 }
 
