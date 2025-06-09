@@ -6,14 +6,14 @@
 @inject IAuthService AuthService
 @inherits LayoutComponentBase
 
-<MudLayout>
+<MudLayout Class="banko-layout d-flex">
   @if (!IsProfileRoute())
   {
-    <MudAppBar Dense="true">
-      <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end">
+    <MudAppBar Dense="false">
+      <MudContainer MaxWidth="MaxWidth.Large" Class="d-flex justify-end" Gutters="false">
         <AuthorizeView>
           <Authorized>
-            <MudMenu Variant="Variant.Text" Size="Size.Large" Class="ml-2" AnchorOrigin="Origin.BottomRight"
+            <MudMenu Variant="Variant.Text" Size="Size.Large" AnchorOrigin="Origin.BottomRight"
               TransformOrigin="Origin.TopRight">
               <ActivatorContent>
                 <MudAvatar>
@@ -64,11 +64,21 @@
   private string GetMainContentClass()
   {
     return IsProfileRoute()
-    ? "pb-16 pt-4"
-    : "pb-16 pt-16";
+    ? "pb-16 ml-0 pt-4"
+    : "pb-16 ml-0 pt-16";
   }
 }
 <style>
+  .banko-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .banko-layout>.mud-appbar {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
   .mud-popover {
     width: 200px;
   }

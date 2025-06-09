@@ -66,7 +66,8 @@ namespace Banko.Client.Helper
       LayoutProperties = new LayoutProperties()
       {
         DefaultBorderRadius = "5px",
-        DrawerWidthRight = "300px"
+        // DrawerWidthRight = "260px",
+        // DrawerWidthLeft = "200px"
       }
     };
 

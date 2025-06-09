@@ -15,14 +15,9 @@ body {
     border-radius: 5px;
   }
 
-
   .active .mud-nav-link-text {
     color: var(--mud-palette-primary);
     font-weight: 500;
-  }
-
-  .mud-drawer-mini .mud-nav-link {
-    line-height: 1.75;
   }
 
 .mud-appbar {
@@ -123,9 +118,6 @@ h1:focus {
   }
   .responsive-height-item > div {
     height: 100%;
-  }
-  .mud-drawer.mud-drawer-responsive.mud-drawer-pos-left.mud-drawer--open, .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left.mud-drawer--open {
-    left: 20px;
   }
 }
 

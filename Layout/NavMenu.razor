@@ -2,14 +2,15 @@
 @using Banko.Client.Services.Auth
 @using Banko.Client.Services.User
 @using Banko.Client.Services
+@using MudBlazor.Services
 
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@Open" Class="navmenu-override-primary-hover" Overlay="false" Breakpoint="@Breakpoint.Md"
-  Elevation="0" Variant="@DrawerVariant.Responsive">
+<MudDrawer @bind-Open="@_open" Class="navmenu-override-primary-hover relative" Overlay="false" Fixed="false"
+  Breakpoint="@Breakpoint.Md" Elevation="0" Variant="@DrawerVariant.Mini" ClipMode="DrawerClipMode.Never">
   <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
@@ -18,12 +19,19 @@
           <MudItem Class="d-flex align-center">
             <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Primary" Size="Size.Medium" Class="mr-2"
               OnClick="@(() => NavigationManager.NavigateTo("/"))" aria-label="Close profile and return to dashboard" />
-            <MudText Typo="Typo.h5" Color="Color.Primary">Settings</MudText>
+            <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+              <MudText Typo="Typo.h5" Color="Color.Primary">Settings</MudText>
+            </MudHidden>
           </MudItem>
         }
         else
         {
-          <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
+          <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+            <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>B</b></MudText>
+          </MudHidden>
+          <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+            <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
+          </MudHidden>
         }
       </Authorized>
       <NotAuthorized>
@@ -32,7 +40,12 @@
         {
           NavigationManager.NavigateTo("/login", true);
         }
-        <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
+        <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+          <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>B</b></MudText>
+        </MudHidden>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+          <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
+        </MudHidden>
       </NotAuthorized>
     </AuthorizeView>
   </MudDrawerHeader>
@@ -68,18 +81,17 @@
         }
       </Authorized>
       <NotAuthorized>
-        <MudNavLink Href="login">Login</MudNavLink>
-        <MudNavLink Href="register">Register</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Outlined.Login" Href="login">Login</MudNavLink>
+        <MudNavLink Icon="@Icons.Material.Outlined.Task" Href="register">Register</MudNavLink>
       </NotAuthorized>
     </AuthorizeView>
   </MudNavMenu>
 </MudDrawer>
 
 @code {
-  [Parameter]
-  public bool Open { get; set; }
-  [Parameter]
-  public EventCallback<bool> OpenChanged { get; set; }
+  [Parameter] public bool Open { get; set; }
+  private bool _open = true;
+  [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
   private async Task HandleLogout()
   {
