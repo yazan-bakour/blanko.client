@@ -43,10 +43,10 @@ else
     </MudButton>
   </MudItem>
 
-  <MudExpansionPanels MultiExpansion="true">
+  <MudExpansionPanels MultiExpansion="true" Elevation="0">
     @foreach (var account in accounts!)
     {
-      <MudExpansionPanel Text="@account.AccountNumber">
+      <MudExpansionPanel Text="@account.AccountNumber" Class="border-none mb-2">
 
         <ChildContent>
           <MudGrid Class="justify-space-between">
@@ -107,6 +107,12 @@ else
   public int userId { get; set; }
   private AccountRead[]? accounts => AccountState.CurrentAccounts;
   private OpenDialog? dialog;
+
+  protected override async Task OnInitializedAsync()
+  {
+    AccountState.OnAccountStateChanged += HandleStateChange;
+    await LoadAccountDataAsync(true);
+  }
   private async Task OpenCreateDialog()
   {
     if (dialog == null) return;

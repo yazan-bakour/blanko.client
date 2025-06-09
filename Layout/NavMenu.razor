@@ -8,8 +8,8 @@
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@Open" Overlay="false" Breakpoint="@Breakpoint.Md" Elevation="0"
-  Variant="@DrawerVariant.Responsive">
+<MudDrawer @bind-Open="@Open" Class="navmenu-override-primary-hover" Overlay="false" Breakpoint="@Breakpoint.Md"
+  Elevation="0" Variant="@DrawerVariant.Responsive">
   <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
@@ -23,7 +23,7 @@
         }
         else
         {
-          <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
+          <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
         }
       </Authorized>
       <NotAuthorized>
@@ -32,7 +32,7 @@
         {
           NavigationManager.NavigateTo("/login", true);
         }
-        <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary">Banko</MudText>
+        <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
       </NotAuthorized>
     </AuthorizeView>
   </MudDrawerHeader>
@@ -98,3 +98,8 @@
     return currentUri.Contains("/profile/account") ? "active" : string.Empty;
   }
 }
+<style scoped>
+  .navmenu-override-primary-hover {
+    --mud-palette-primary-hover: rgba(9, 47, 82, 1) !important;
+  }
+</style>

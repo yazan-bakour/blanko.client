@@ -54,7 +54,7 @@
       Mask="@(new DateMask("dd.MM.yyyy"))" PickerVariant="PickerVariant.Dialog" />
 
     <MudSelect T="UserGender ?" Label="Gender" @bind-Value="detailsData.Gender" Disabled="!_isEditing"
-      Variant="Variant.Filled" FullWidth Class="mb-3" AnchorOrigin="Origin.BottomCenter">
+      Variant="Variant.Filled" FullWidth Class="mb-3" AnchorOrigin="Origin.BottomLeft">
       <MudSelectItem T="UserGender ?" Value="@(UserGender.Male)">Male</MudSelectItem>
       <MudSelectItem T="UserGender ?" Value="@(UserGender.Female)">Female</MudSelectItem>
     </MudSelect>

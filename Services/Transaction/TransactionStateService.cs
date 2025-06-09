@@ -46,6 +46,12 @@ namespace Banko.Client.Services.Transaction
       }
     }
 
+    public Task<byte[]> GetStatementAsync(
+    DateTime? fromDate = null,
+    DateTime? toDate = null,
+    string? period = null)
+    => TransactionService.DownloadStatementPdfAsync(fromDate, toDate, period);
+
     private void NotifyTransactionStateChanged()
     {
       OnTransactionStateChanged?.Invoke();

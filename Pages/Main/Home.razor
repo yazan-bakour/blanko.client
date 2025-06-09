@@ -1,6 +1,9 @@
 @page "/"
+@using Banko.Client.Models.Account
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Services
+@using Banko.Client.Services.Account
+@using Banko.Client.Services.User
 @using Banko.Client.Services.Transaction
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web
@@ -11,6 +14,8 @@
 @inject TransactionStateService TransactionState
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject AccountStateService AccountState
+@inject UserStateService UserState
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Home</PageTitle>
@@ -21,21 +26,22 @@
     <MudDrawer Class="mud-drawer-account" @bind-Open="@_open" Anchor="Anchor.Right" Elevation="0"
       Variant="@DrawerVariant.Persistent">
       <MudDrawerHeader Class="d-flex align-center p-0 height-0 min-height-0">
-        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Inherit" OnClick="@ToggleDrawer"
-          aria-label="Toggle drawer" />
+        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Primary" OnClick="@ToggleDrawer"
+          aria-label="Toggle drawer" Size="Size.Medium" Class="mr-2" />
         <MudText Typo="Typo.h6">Account details</MudText>
       </MudDrawerHeader>
       <MudItem>
-        <MudStack Spacing="3">
+        <MudStack Spacing="3" Class="pt-3">
 
-          <MudTextField T="string" Label="Beneficiary" Variant="Variant.Outlined" ReadOnly="true"
-            Adornment="Adornment.End" IconSize="Size.Small" AdornmentIcon="@Icons.Material.Filled.ContentCopy" />
-
+          <MudTextField T="string" Label="IBAN" Value="Account?.AccountNumber" Variant="Variant.Filled" ReadOnly="true"
+            Adornment="Adornment.End" IconSize="Size.Small" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+            Underline="false" AdornmentColor="Color.Primary"
+            OnAdornmentClick="@(() => CopyToClipboardAsync(Account?.AccountNumber ?? string.Empty))" />
 
           <MudDivider Class="my-2" />
 
           <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Color="Color.Warning" Class="mt-1" />
+            <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Color="Color.Primary" Class="mt-1" />
             <MudText Typo="Typo.body2">Use these details to receive your salary and transfers from a Euro bank
               account.
             </MudText>
@@ -49,7 +55,7 @@
           </MudStack>
 
           <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2">
-            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Info" Class="mt-1" />
+            <MudIcon Icon="@Icons.Material.Filled.AccessTime" Color="Color.Primary" Class="mt-1" />
             <MudText Typo="Typo.body2">If the sending bank supports instant payments, the payment will arrive in a few
               seconds. Otherwise, it will take up to 2 working days.</MudText>
           </MudStack>
@@ -62,11 +68,34 @@
 
 @code
 {
+  private AccountRead? Account => AccountState.CurrentAccounts?.FirstOrDefault() ?? null;
   private bool _open = false;
   [Parameter] public EventCallback<bool> OpenChanged { get; set; }
   private void ToggleDrawer()
   {
     _open = !_open;
+  }
+  private async Task LoadInitialDataAsync()
+  {
+    LoadingService.IsLoading = true;
+    StateHasChanged();
+    try
+    {
+      await UserState.LoadUserDataAsync();
+      if (UserState.CurrentUser != null)
+      {
+        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
+      }
+    }
+    catch (Exception ex)
+    {
+      Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+    }
+    finally
+    {
+      LoadingService.IsLoading = false;
+      StateHasChanged();
+    }
   }
   private async Task CopyToClipboardAsync(string text)
   {
@@ -88,5 +117,7 @@
     border-radius: var(--mud-default-borderradius);
     color: var(--mud-palette-text-primary);
     background-color: var(--mud-palette-surface);
+    width: 400px;
+    --mud-palette-primary-hover: rgba(237 240 243 / 31%) !important;
   }
 </style>

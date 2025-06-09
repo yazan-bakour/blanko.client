@@ -11,16 +11,16 @@
 <MudPaper Class="pa-4 mt-4">
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Appearance Settings</MudText>
-    @if (UserState.Preference.Theme != _originalTheme)
-    {
-      <MudItem>
+    <MudItem Style="height: 50px;">
+      @if (UserState.Preference.Theme != _originalTheme)
+      {
         <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
           Disabled="LoadingService.IsLoading">
           Cancel</MudButton>
-      </MudItem>
-    }
+      }
+    </MudItem>
   </MudItem>
 
   <MudGrid Class="mt-4">

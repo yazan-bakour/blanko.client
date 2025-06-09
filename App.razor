@@ -1,6 +1,7 @@
 ﻿@using Banko.Client.Models.User
 @using Banko.Client.Services.User
 @using MudBlazor.Utilities
+@using Banko.Client.Helper
 
 @inject UserStateService UserState
 @inject LoadingService LoadingService
@@ -11,7 +12,7 @@
 
 <CascadingAuthenticationState>
 
-  <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="MyCustomTheme" />
+  <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="ThemeCustomColors.AppTheme" />
 
   <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
@@ -43,47 +44,7 @@
   private bool IsDark;
 
   private MudThemeProvider? _mudThemeProvider;
-  MudTheme MyCustomTheme = new MudTheme()
-  {
-    PaletteLight = new PaletteLight()
-    {
-      Primary = Colors.LightBlue.Darken1,
-      Secondary = Colors.Indigo.Darken2,
-      @* Surface = new MudColor(Colors.Blue.Lighten5).SetAlpha(0.1).ToString(MudColorOutputFormats.RGBA), *@
-      Surface = Colors.Blue.Lighten5,
-      TextPrimary = Colors.Gray.Darken4,
-      @* TextDisabled = Colors.Gray.Darken1, *@
-      DrawerText = Colors.Gray.Lighten1,
-      DrawerIcon = Colors.Gray.Lighten1,
-      LinesInputs = Colors.Gray.Darken2,
-      Divider = Colors.Gray.Darken2,
-      TableLines = Colors.Gray.Darken1,
-      @* ActionDefault = "rgba(255, 255, 255, 0.17)", *@
-      @* ActionDisabledBackground = "rgba(255, 255, 255, 0.12)", *@
-      @* RippleOpacitySecondary = 0.80, *@
-      @* HoverOpacity = 0.80, *@
-      LinesDefault = Colors.Gray.Darken2,
-      AppbarBackground = "#000d1a",
-      Background = "#000d1a",
-    },
-    PaletteDark = new PaletteDark()
-    {
-      Primary = Colors.LightBlue.Lighten5,
-      Secondary = Colors.Indigo.Darken3,
-      Dark = Colors.LightBlue.Darken4,
-      Info = Colors.Blue.Accent1,
-      AppbarBackground = Colors.Red.Lighten5,
-      TextDisabled = Colors.Gray.Darken1,
-      Surface = "#092f52",
-      @* ActionDefault = "rgba(255, 255, 255, 0.17)",
-      ActionDisabledBackground = "rgba(255, 255, 255, 0.12)",
-      RippleOpacitySecondary = 0.40, *@
-    },
-    LayoutProperties = new LayoutProperties()
-    {
-      @* DrawerWidthRight = "300px", *@
-    }
-  };
+  
   protected override async Task OnInitializedAsync()
   {
     LoadingService.IsLoading = true;
@@ -96,6 +57,7 @@
       await UserState.LoadUserDataAsync();
       IsDark = UserState.Preference.Theme;
     }
+
     LoadingService.IsLoading = false;
   }
 
@@ -113,3 +75,30 @@
     UserState.OnUserStateChanged -= OnUserStateChanged;
   }
 }
+<style>
+  body {
+    background-image: @(IsDark
+        ? ThemeCustomColors.DarkGradientImage 
+        : ThemeCustomColors.LightGradientImage);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: @(IsDark 
+        ? ThemeCustomColors.DarkGradientGlow 
+        : ThemeCustomColors.LightGradientGlow);
+    background-position: top right, bottom left, center center;
+    background-size: 120% 120%, 120% 120%, 150% 150%;
+    @* background-size: 40% 67%, 42% 112%, 193% 200%; *@
+    background-repeat: no-repeat;
+    opacity: 1;
+    z-index: -1;
+    pointer-events: none;
+    animation: glow-shift 30s ease-in-out infinite alternate;
+  }
+</style>

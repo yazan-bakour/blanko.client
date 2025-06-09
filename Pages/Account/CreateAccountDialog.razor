@@ -1,17 +1,17 @@
 @using Banko.Client.Models.Account
 @using System.ComponentModel.DataAnnotations
 
-<MudDialog>
+<MudDialog Class="shadow-none">
   <TitleContent>
     <MudText Typo="Typo.h6">Create New Account</MudText>
   </TitleContent>
   <DialogContent>
-    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0">
+    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0" Spacing="4">
       <MudNumericField @bind-Value="_model.Balance" Label="Initial Balance" Required="true"
-        For="@(() => _model.Balance)" Variant="Variant.Outlined" Adornment="Adornment.Start"
-        AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+        For="@(() => _model.Balance)" Variant="Variant.Text" Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.AttachMoney" IconSize="Size.Small" Immediate />
       <MudSelect @bind-Value="_model.Type" Label="Account Type" Required="true" For="@(() => _model.Type)"
-        Variant="Variant.Outlined">
+        Variant="Variant.Text">
         @foreach (AccountType type in Enum.GetValues(typeof(AccountType)))
         {
           <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>

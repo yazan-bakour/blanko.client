@@ -1,0 +1,67 @@
+@using MudBlazor
+@using Banko.Client.Services.Transaction
+@using static MudBlazor.Icons
+@inject TransactionStateService TransactionState
+@inject IJSRuntime JSRuntime
+
+<MudDialog Class="shadow-none">
+  <TitleContent>
+    <MudText Typo="Typo.h6">Download Statement</MudText>
+  </TitleContent>
+  <DialogContent>
+    <MudStack Spacing="3" Class="pb-3">
+      <MudSelect T="string" Label="Quick Period" @bind-Value="Period" Immediate>
+        <MudSelectItem Value="@("1m")">Last 1 month</MudSelectItem>
+        <MudSelectItem Value="@("3m")">Last 3 months</MudSelectItem>
+        <MudSelectItem Value="@("6m")">Last 6 months</MudSelectItem>
+        <MudSelectItem Value="@("custom")">Custom range</MudSelectItem>
+      </MudSelect>
+      @if (Period == "custom")
+      {
+        <MudDatePicker Label="From" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="FromDate"
+          Required="true" ShowToolbar="false" Placeholder="dd.mm.yyyy" RelativeWidth="DropdownWidth.Relative"
+          Elevation="1" />
+        <MudDatePicker Label="To" Mask="@(new DateMask("dd.MM.yyyy"))" DateFormat="dd.MM.yyyy" @bind-Date="ToDate"
+          Required="true" ShowToolbar="false" Placeholder="dd.mm.yyyy" RelativeWidth="DropdownWidth.Relative"
+          Elevation="1" />
+      }
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="Color.Primary" OnClick="Download">Download</MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!;
+
+  private string Period { get; set; } = "1m";
+  private DateTime? FromDate { get; set; } = DateTime.UtcNow.AddMonths(-1);
+  private DateTime? ToDate { get; set; } = DateTime.UtcNow;
+
+  private void Cancel() => MudDialog.Cancel();
+
+  private async Task Download()
+  {
+    DateTime? from = Period == "custom" ? FromDate : null;
+    DateTime? to = Period == "custom" ? ToDate : null;
+
+    var pdfBytes = await TransactionState.GetStatementAsync(
+    fromDate: from,
+    toDate: to,
+    period: Period != "custom" ? Period : null
+    );
+
+    // turn into base64 and fire download via JS
+    var base64 = Convert.ToBase64String(pdfBytes);
+    await JSRuntime.InvokeVoidAsync(
+    "downloadFile",
+    "statement.pdf",
+    "application/pdf",
+    base64
+    );
+
+    MudDialog.Close();
+  }
+}

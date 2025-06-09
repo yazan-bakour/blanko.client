@@ -19,16 +19,14 @@
   <body>
     <div id="app">
       <div id="loading">
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: rgb(90,75,226);">
+        <div class="main-background">
           <div class="mud-progress-circular mud-primary mud-progress-medium mud-progress-indeterminate">
-            <svg class="mud-progress-circular-svg" viewBox="22 22 44 44" color="#fff">
+            <svg class="mud-progress-circular-svg" viewBox="22 22 44 44" color="#00468d">
               <circle class="mud-progress-circular-circle mud-progress-indeterminate" cx="44" cy="44" r="20" fill="none" stroke-width="4"></circle>
             </svg>
           </div>
         </div>
-        
       </div>
-    </div>
     </div>
 
     <div id="blazor-error-ui">
@@ -36,8 +34,49 @@
       <a href="." class="reload">Reload</a>
       <span class="dismiss">🗙</span>
     </div>
+
+    <!--Download file scriprt-->
+    <script>
+      window.downloadFile = (fileName, contentType, base64Data) => {
+        const link = document.createElement('a');
+        link.href = `data:${contentType};base64,${base64Data}`;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="_framework/aspnetcore-browser-refresh.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
   </body>
 </html>
+<style>
+  .main-background {
+    background-attachment: fixed;
+    position: relative;
+    margin: 0;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh;
+    background-image: linear-gradient(271deg,rgb(148, 173, 255) 20%,rgb(145, 137, 255) 50%,rgb(202, 201, 241) 70%)
+  }
+
+  .main-background::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(50% 50% at 50% 50%, #e0e0e0 0%, rgba(0, 38, 77, 0) 100%),radial-gradient(50% 50% at 50% 50%, #e0e0e0 0%, rgba(0, 38, 77, 0) 100%), radial-gradient(50% 50% at 50% 50%, #e0e0e0 0%, rgba(0, 38, 77, 0) 100%);
+    background-position: top right, bottom left, center center;
+    background-size: 40% 67%, 42% 112%, 193% 200%;
+    background-repeat: no-repeat;
+    opacity: 1;
+    z-index: -1;
+    pointer-events: none;
+    animation: glow-shift 30s ease-in-out infinite alternate;
+  }
+</style>

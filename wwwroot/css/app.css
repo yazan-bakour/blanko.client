@@ -1,12 +1,3 @@
-:root {
-  --banko-color-grouped-background: #000d1a;
-  --banko-primary-dark: #001a33;
-  --banko-primary-medium: #00264d;
-  --banko-primary-light: #00468d; /* #003366 */
-  --banko-gradient-glow: radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%), 
-                       radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%), 
-                       radial-gradient(50% 50% at 50% 50%, #00264d 0%, rgba(0, 38, 77, 0) 100%);
-}
 html {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   height: 100%;
@@ -15,39 +6,15 @@ html {
 
 body {
   height: 100%;
-  background-color: var(--banko-color-grouped-background, #000d1a);
-  background-image: linear-gradient(271deg, var(--banko-primary-dark) 20%, var(--banko-primary-medium) 50%, var(--banko-primary-light) 70%);
   background-attachment: fixed;
   position: relative;
   margin: 0;
 }
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--banko-gradient-glow);
-  background-position: top right, bottom left, center center;
-  background-size: 120% 120%, 120% 120%, 150% 150%;
-  background-repeat: no-repeat;
-  opacity: 1; /* Increased from 0.7 to make it more visible */
-  z-index: -1;
-  pointer-events: none; /* Ensure it doesn't interfere with page interactions */
-  animation: glow-shift 30s ease-in-out infinite alternate; /* Subtle animation */
-}
-  .mud-drawer.mud-drawer-temporary.mud-drawer-pos-left.mud-drawer--open {
-    /* left: 20px; */
-  }
 
   .mud-nav-link {
     border-radius: 5px;
   }
 
-  .active {
-    background: #092f52;
-  }
 
   .active .mud-nav-link-text {
     color: var(--mud-palette-primary);
@@ -58,9 +25,6 @@ body::before {
     line-height: 1.75;
   }
 
-.mud-input>input.mud-input-root, div.mud-input-slot.mud-input-root {
-  color: #757575;
-}
 .mud-appbar {
   background: transparent;
   box-shadow: none;
@@ -70,25 +34,12 @@ body::before {
   background: transparent;
   box-shadow: none;
 }
-.mud-paper, .mud-expand-panel {
-  /* background: #092f52; */
-  box-shadow: none;
-}
-.mud-popover {
-    width: 200px;
-    background: #17538d;
-  }
+
 .mud-table {
   background: transparent;
   box-shadow: none;
 }
-.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
-  background: #092f52;
-}
-.mud-dialog {
-  background: #22486d;
-  box-shadow: none;
-}
+
 .mud-button.mud-button-filled {
     box-shadow: none !important;
   }

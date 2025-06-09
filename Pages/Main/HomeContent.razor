@@ -2,10 +2,12 @@
 @using Banko.Client.Helper
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Models.User
+@using Banko.Client.Pages.Account
 @using Banko.Client.Services
 @using Banko.Client.Services.Account
 @using Banko.Client.Services.User
 @using Banko.Client.Services.Transaction
+@using Banko.Client.Components
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web
 
@@ -17,19 +19,22 @@
 @inject IJSRuntime JSRuntime
 @inject AccountStateService AccountState
 @inject UserStateService UserState
+@inject IDialogService DialogService
 
 <PageTitle>Home</PageTitle>
+<OpenDialog @ref="dialog" />
 
 <MudItem xs="12" Class="pr-2">
   <!-- Header Section -->
   <MudItem xs="12">
     <MudPaper Elevation="0" Class="d-flex justify-space-between align-center pa-2 mb-2">
       <MudStack Spacing="0">
-        <MudText Typo="Typo.h5">@CurrencyFormatter.FormatCurrencySymbol(Account?.Balance ?? 0m, Account.Currency.ToString())</MudText> 
+        <MudText Typo="Typo.h5">@CurrencyFormatter.FormatCurrencySymbol(Account?.Balance ?? 0m, Account?.Currency.ToString() ?? "USD")</MudText> 
         <MudText Typo="Typo.body2">@(Account?.Type) - @(Account?.Currency.ToString() ?? "-")</MudText>
       </MudStack>
       <MudStack Row="true" Spacing="1">
-        <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Payment" IconColor="Color.Primary">Pay</MudButton>
+        <MudButton OnClick="@(() => OpenCreateTransactionDialog(Account ?? new AccountRead()))" Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Payment" IconColor="Color.Primary">Payment</MudButton>
+
         <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="@StatementDialog" StartIcon="@Icons.Material.Filled.Description" IconColor="Color.Primary">Statement</MudButton>
         <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="@ToggleDrawer" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" IconColor="Color.Primary">Account details</MudButton>
       </MudStack>
@@ -46,7 +51,7 @@
     {
       @foreach (var transaction in transactions)
       {
-        <MudPaper Class="pa-3 mb-2">
+        <MudPaper Class="pa-3 mb-2" Elevation="0">
           <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
               <MudAvatar Rounded="true" Color="@FormatUtilities.GetStatusColor(transaction.Status)" Class="mr-3">
@@ -86,14 +91,14 @@
   [Parameter] public EventCallback<bool> OpenChanged { get; set; }
   [Parameter] public EventCallback ToggleDrawer { get; set; }
   private TransactionRead[]? transactions => TransactionState.CurrentTransactions ?? Array.Empty<TransactionRead>();
-  private AccountRead? Account => AccountState.CurrentAccounts?.FirstOrDefault() ?? null;
+  private AccountRead? Account => AccountState.CurrentAccounts?.FirstOrDefault();
   private AccountRead[]? Accounts => AccountState.CurrentAccounts ?? [];
-  private HashSet<string> CurrentAccountNumbers = new HashSet<string>();
+  private HashSet<string> CurrentAccountNumbers => AccountState.CurrentAccounts?.Select(a => a.AccountNumber)?.ToHashSet() ?? new HashSet<string>();
+  private OpenDialog? dialog;
   protected override async Task OnInitializedAsync()
   {
     TransactionState.OnTransactionStateChanged += HandleStateChange;
     AccountState.OnAccountStateChanged += HandleStateChange;
-    CurrentAccountNumbers = AccountState.CurrentAccounts?.Select(a => a.AccountNumber)?.ToHashSet() ?? new HashSet<string>();
     if (transactions != null && !transactions.Any())
     {
       await LoadInitialDataAsync();
@@ -109,8 +114,8 @@
       await UserState.LoadUserDataAsync();
       if (UserState.CurrentUser != null)
       {
-        await TransactionState.InitializeTransactionStateAsync();
-        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id);
+        await TransactionState.InitializeTransactionStateAsync(true);
+        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
       }
     }
     catch (Exception ex)
@@ -123,12 +128,33 @@
       StateHasChanged();
     }
   }
+  private async Task OpenCreateTransactionDialog(AccountRead sourceAccount)
+  {
+    if (dialog == null) return;
+    var dialogParameters = new DialogParameters<CreateTransactionDialog>();
+    dialogParameters.Add(x => x.PreSelectedSourceAccountNumber, sourceAccount.AccountNumber ?? string.Empty);
+
+    await dialog.OpenDialogAsync<CreateTransactionDialog, TransactionCreate>(
+      title: "Create New Transaction",
+      parameters: dialogParameters,
+      onSuccess: async (model) => await TransactionState.CreateTransaction(model),
+      successMessage: "Transaction created successfully!",
+      additionalActions: async () =>
+      {
+        if (UserState.CurrentUser != null)
+        {
+          await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
+          await TransactionState.InitializeTransactionStateAsync(true);
+        }
+      }
+    );
+  }
 
   private async Task StatementDialog()
   {
-    var parameters = new DialogParameters {};
-    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, NoHeader = true }; // NoHeader since we provide TitleContent
-    await DialogService.ShowAsync<MudDialog>("", parameters, options); // Title in parameters
+    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    await DialogService.ShowAsync<DownloadStatementDialog>(
+      "Download Statement", new DialogParameters(), options);
   }
 
   private void HandleStateChange()

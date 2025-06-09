@@ -45,30 +45,34 @@ namespace Banko.Client.Helper
       return $"{parts[0][0]}{parts[1][0]}".ToUpper();
     }
 
-    public static string GetAmountInitials(string currentAccountNumbers, string sourceAccountNumber, string destinationAccountNumber)
+    public static string GetAmountInitials(string currentAccountNumbers, string? sourceAccountNumber, string? destinationAccountNumber)
     {
-
-      bool isSourceMine = currentAccountNumbers.Contains(sourceAccountNumber ?? string.Empty);
-
-      bool isDestinationMine = !string.IsNullOrEmpty(destinationAccountNumber) &&
-                              currentAccountNumbers.Contains(destinationAccountNumber);
-
-      if (isSourceMine && isDestinationMine)
+      try
       {
-        return "+";
-      }
+        // Split the comma-separated string into distinct account numbers
+        var accountList = currentAccountNumbers
+            .Split([','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(a => a.Trim())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-      if (isSourceMine && !isDestinationMine)
+        var source = sourceAccountNumber ?? string.Empty;
+        var destination = destinationAccountNumber ?? string.Empty;
+
+        bool isSourceMine = accountList.Contains(source);
+        bool isDestinationMine = accountList.Contains(destination);
+
+        if (isSourceMine && isDestinationMine) return "+";
+        if (isSourceMine && !isDestinationMine) return "-";
+        if (!isSourceMine && isDestinationMine) return "+";
+
+        // Default if none of the above conditions match
+        return "?";
+      }
+      catch
       {
-        return "-";
+        // Fallback for any unexpected errors
+        return "?";
       }
-
-      if (!isSourceMine && isDestinationMine)
-      {
-        return "+";
-      }
-
-      return "?";
     }
 
     public static Color GetStatusColor(TransactionStatus status) => status switch

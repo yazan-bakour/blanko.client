@@ -3,20 +3,20 @@
 @using System.ComponentModel.DataAnnotations
 @using MudBlazor
 
-<MudDialog>
+<MudDialog Class="shadow-none">
   <TitleContent>
     <MudText Typo="Typo.h6">Create New Transaction</MudText>
   </TitleContent>
   <DialogContent>
-    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0">
-      <MudTextField @bind-Value="_model.SourceAccountNumber" Label="From Account Number" Required="true"
-        For="@(() => _model.SourceAccountNumber)" Variant="Variant.Outlined" ReadOnly="true" />
+    <MudForm Model="@_model" @ref="_form" @bind-IsValid="@_success" ValidationDelay="0" Spacing="4">
+      <MudTextField @bind-Value="_model.SourceAccountNumber" Label="From" Required="true"
+        For="@(() => _model.SourceAccountNumber)" Variant="Variant.Text" ReadOnly="true" />
 
-      <MudTextField @bind-Value="_model.DestinationAccountNumber" Label="To Account Number" Required="true"
-        For="@(() => _model.DestinationAccountNumber)" Variant="Variant.Outlined" />
+      <MudTextField @bind-Value="_model.DestinationAccountNumber" Label="To" Placeholder="Recipient account"
+        Required="true" For="@(() => _model.DestinationAccountNumber)" Variant="Variant.Text" ShrinkLabel="false" />
 
       <MudSelect @bind-Value="_model.Type" Label="Transaction Type" Required="true" For="@(() => _model.Type)"
-        Variant="Variant.Outlined">
+        Variant="Variant.Text">
         @foreach (TransactionType type in Enum.GetValues(typeof(TransactionType)))
         {
           <MudSelectItem Value="@type">@type.ToString()</MudSelectItem>
@@ -24,19 +24,19 @@
       </MudSelect>
 
       <MudNumericField T="decimal" @bind-Value="_model.Amount" Label="Amount" Required="true"
-        For="@(() => _model.Amount)" Variant="Variant.Outlined" Adornment="Adornment.Start"
-        AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+        For="@(() => _model.Amount)" Variant="Variant.Text" Adornment="Adornment.Start"
+        AdornmentIcon="@Icons.Material.Filled.AttachMoney" IconSize="Size.Small" Immediate />
 
       <MudSelect @bind-Value="_model.PaymentMethod" Label="Payment Method" Required="true"
-        For="@(() => _model.PaymentMethod)" Variant="Variant.Outlined">
+        For="@(() => _model.PaymentMethod)" Variant="Variant.Text">
         @foreach (PaymentMethod method in Enum.GetValues(typeof(PaymentMethod)))
         {
           <MudSelectItem Value="@method">@method.ToString()</MudSelectItem>
         }
       </MudSelect>
 
-      <MudTextField @bind-Value="_model.Description" Label="Description (Optional)" Lines="3"
-        For="@(() => _model.Description)" Variant="Variant.Outlined" />
+      <MudTextField @bind-Value="_model.Description" Label="Description" Placeholder="Describe your payment"
+        Required="true" Lines="3" For="@(() => _model.Description)" Variant="Variant.Text" Immediate />
     </MudForm>
   </DialogContent>
   <DialogActions>

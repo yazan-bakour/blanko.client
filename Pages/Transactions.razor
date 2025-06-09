@@ -30,10 +30,10 @@ else if (!transactions?.Any() ?? true)
 }
 else
 {
-  <MudExpansionPanels MultiExpansion="true">
+  <MudExpansionPanels MultiExpansion="true" Elevation="0">
     @foreach (var transaction in transactions!)
     {
-      <MudExpansionPanel>
+      <MudExpansionPanel Class="border-none mb-2">
         <TitleContent>
           <MudStack Row="true" Justify="Justify.SpaceBetween" Class="width-100 align-items-center pr-1">
             <MudText Typo="Typo.body1">@transaction.Type - @CurrencyFormatter.FormatCurrencySymbol(transaction.Amount,

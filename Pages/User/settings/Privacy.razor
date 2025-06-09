@@ -11,21 +11,22 @@
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Privacy</MudText>
 
-    @if (UserState.Preference.Privacy != _originalHideEmail)
-    {
-      <MudItem>
+    <MudItem Style="height: 50px;">
+      @if (UserState.Preference.Privacy != _originalHideEmail)
+      {
         <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleEmailSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
         <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
           Disabled="LoadingService.IsLoading">
           Cancel</MudButton>
-      </MudItem>
-    }
+      }
+    </MudItem>
   </MudItem>
 
   <MudGrid Class="mt-4">
     <MudItem xs="12">
-      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail">
+      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail"
+        UncheckedColor="Color.Info" Color="Color.Primary">
         @(UserState.Preference.Privacy ? "Hide Email" : "Show Email")
       </MudSwitch>
     </MudItem>
