@@ -130,14 +130,12 @@ else
   {
     if (dialog == null) return;
 
-    var parameters = new DialogParameters<CreateTransactionDialog>
-{
-{ nameof(CreateTransactionDialog.PreSelectedSourceAccountNumber), sourceAccount.AccountNumber }
-};
+    var dialogParameters = new DialogParameters<CreateTransactionDialog>();
+    dialogParameters.Add(x => x.PreSelectedSourceAccountNumber, sourceAccount.AccountNumber ?? string.Empty);
 
     await dialog.OpenDialogAsync<CreateTransactionDialog, TransactionCreate>(
     title: "Create New Transaction",
-    parameters: parameters,
+    parameters: dialogParameters,
     onSuccess: async (model) => await TransactionState.CreateTransaction(model),
     successMessage: "Transaction created successfully!",
     additionalActions: async () =>

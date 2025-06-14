@@ -2,9 +2,10 @@
 @using Banko.Client.Helper
 
 <MudPaper Class="pa-4 rounded-lg mud-height-full" Elevation="0">
-  <MudText Typo="Typo.h6" Class="mb-2">
-    <MudIcon Icon="@Icons.Material.Filled.History" Class="mr-2" />Recent Transactions
-  </MudText>
+  <MudStack Row AlignItems="AlignItems.Center" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.History" />
+    <MudText Typo="Typo.h6" Class="mr-2">Recent Transactions</MudText>
+  </MudStack>
 
   @if (transactions?.Length > 0)
   {

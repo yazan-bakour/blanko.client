@@ -20,15 +20,16 @@
       
       <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.KeyboardBackspace" />
     </MudLink> *@
-  <MudIconButton Icon="@Icons.Material.Filled.KeyboardBackspace" Color="Color.Primary" Size="Size.Medium"
-    OnClick="@(() => NavigationManager.NavigateTo("/profile"))" aria-label="Back button" Style="margin-left: -10px;" />
+  <MudIconButton Ripple Icon="@Icons.Material.Filled.KeyboardBackspace" Color="Color.Primary" Size="Size.Medium"
+    OnClick="@(() => NavigationManager.NavigateTo("/profile"))" aria-label="Back button"
+    Style="margin-left: -10px; margin-top: -8px;" />
 
   <MudItem Class="d-flex justify-end align-self-end" Style="height: 36px;">
     @if (_isEditing)
     {
-      <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
-        Disabled="LoadingService.IsLoading">Save</MudButton>
-      <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+      <MudButton Ripple DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync"
+        Class="mr-2" Disabled="LoadingService.IsLoading">Save</MudButton>
+      <MudButton Ripple DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
         Disabled="LoadingService.IsLoading">Cancel</MudButton>
     }
     else

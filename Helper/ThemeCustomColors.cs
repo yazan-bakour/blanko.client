@@ -24,7 +24,9 @@ namespace Banko.Client.Helper
     public static class Dark
     {
       public static readonly MudColor Primary = new("#092f52");
-      public static readonly MudColor DarkAppbarBackground = new("#001a33");
+      public static readonly MudColor ActionDefault = Colors.Blue.Lighten5;
+      public static readonly MudColor Surface = new("#0d3960");
+      public static readonly MudColor ActionDisabledBackground = new MudColor("#00468d").SetAlpha(0.2).ToString(MudColorOutputFormats.RGBA);
     }
 
 
@@ -58,19 +60,22 @@ namespace Banko.Client.Helper
         Dark = Colors.LightBlue.Darken4,
         Info = Colors.Blue.Accent1,
         TextDisabled = Colors.Gray.Lighten4,
-        Surface = Dark.Primary,
+        Surface = Dark.Surface,
         TextPrimary = Colors.Gray.Lighten4,
-        ActionDefault = Dark.Primary,
-        // RippleOpacity = 0.5,
-        HoverOpacity = 1,
+        ActionDefault = Dark.ActionDefault,
+        ActionDisabled = Dark.ActionDefault,
+        ActionDisabledBackground = Light.ActionDisabledBackground,
+        RippleOpacity = 0.5,
+        HoverOpacity = 0.14,
+        Background = Colors.LightBlue.Darken4
       },
 
       LayoutProperties = new LayoutProperties()
       {
-        DefaultBorderRadius = "5px",
+        DefaultBorderRadius = "4px",
         // DrawerWidthRight = "260px",
         // DrawerWidthLeft = "200px"
-      }
+      },
     };
 
   }

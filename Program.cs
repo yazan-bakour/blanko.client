@@ -14,6 +14,7 @@ using Banko.Client.Helper;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using MudBlazor;
 using Banko.Client.Components;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
@@ -22,6 +23,7 @@ builder.Services.AddScoped<AuthStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<AuthStateProvider>());
 
 builder.Services.AddScoped<LoadingService>();
+builder.Services.AddScoped<BankoSnackbar>();
 builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped(typeof(ICacheValidator<>), typeof(CacheValidator<>));
 
@@ -40,7 +42,14 @@ builder.Services.AddScoped<AccountStateService>();
 builder.Services.AddScoped<TransactionStateService>();
 builder.Services.AddScoped<ErrorService>();
 
-builder.Services.AddMudServices();
+builder.Services.AddMudServices(config =>
+{
+  config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
+
+  config.SnackbarConfiguration.VisibleStateDuration = 500;
+  config.SnackbarConfiguration.HideTransitionDuration = 500;
+  config.SnackbarConfiguration.ShowTransitionDuration = 500;
+});
 
 var apiBaseAddress = builder.Configuration["API_BASE_URL"] ?? throw new InvalidOperationException("API Base Address is not configured.");
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseAddress) });

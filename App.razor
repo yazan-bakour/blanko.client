@@ -9,6 +9,7 @@
 @inject LoadingService LoadingService
 
 <LoadingIndicator />
+@* <BankoSnackbar /> *@
 
 <CascadingAuthenticationState>
 
@@ -37,14 +38,12 @@
 </CascadingAuthenticationState>
 
 <MudPopoverProvider />
-<MudDialogProvider />
+<MudDialogProvider  />
 <MudSnackbarProvider />
 
 @code {
   private bool IsDark;
-
   private MudThemeProvider? _mudThemeProvider;
-  
   protected override async Task OnInitializedAsync()
   {
     LoadingService.IsLoading = true;

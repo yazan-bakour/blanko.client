@@ -8,11 +8,11 @@
 @inject LoadingService LoadingService
 @inject ISnackbar Snackbar
 
-<MudPaper Class="pa-4 mt-4">
+<MudPaper Class="pa-4 mt-4" Elevation="0">
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Appearance Settings</MudText>
     <MudItem Style="height: 50px;">
-      @if (UserState.Preference.Theme != _originalTheme)
+      @if (isInitialized && UserState.Preference.Theme != _originalTheme)
       {
         <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
@@ -33,12 +33,13 @@
 </MudPaper>
 
 @code {
+  private bool isInitialized = false;
   private bool _originalTheme;
   protected override async Task OnInitializedAsync()
   {
+    LoadingService.IsLoading = true;
     try
     {
-      LoadingService.IsLoading = true;
       await UserState.LoadUserDataAsync();
       var darkMode = GetDarkModePreference();
       UserState.Preference.Theme = darkMode;
@@ -50,6 +51,7 @@
     }
     finally
     {
+      isInitialized = true;
       LoadingService.IsLoading = false;
     }
   }

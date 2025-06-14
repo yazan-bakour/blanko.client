@@ -29,7 +29,7 @@
   <MudItem xs="12">
     <MudPaper Elevation="0" Class="d-flex justify-space-between align-center pa-2 mb-2">
       <MudStack Spacing="0">
-        <MudText Typo="Typo.h5">@CurrencyFormatter.FormatCurrencySymbol(Account?.Balance ?? 0m, Account?.Currency.ToString() ?? "USD")</MudText> 
+        <MudText Typo="Typo.h5"><b>@CurrencyFormatter.FormatCurrencySymbol(Account?.Balance ?? 0m, Account?.Currency.ToString() ?? "USD")</b></MudText> 
         <MudText Typo="Typo.body2">@(Account?.Type) - @(Account?.Currency.ToString() ?? "-")</MudText>
       </MudStack>
 
@@ -47,7 +47,7 @@
             <MudText Typo="Typo.button" Class="ml-2">Statement</MudText>
           </MudHidden>
         </MudButton>
-        
+
         <MudButton DropShadow="false" Size="Size.Small" Variant="Variant.Filled" OnClick="@ToggleDrawer">
           <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Primary" />
           <MudHidden Breakpoint="Breakpoint.SmAndDown">
@@ -66,20 +66,23 @@
     }
     else if (transactions != null && transactions.Any())
     {
-      @foreach (var transaction in transactions)
+      @foreach (var transaction in transactions.OrderByDescending(t => t.CreatedAt).Take(8))
       {
         <MudPaper Class="pa-3 mb-2" Elevation="0">
-          <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Start">
+          <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
               <MudAvatar Rounded="true" Color="@FormatUtilities.GetStatusColor(transaction.Status)" Class="mr-3">
                 <MudText Typo="Typo.body2">@FormatUtilities.GetTransactionInitials(transaction.Description)</MudText>
               </MudAvatar>
+              
               <MudStack Spacing="0">
                 <MudText Typo="Typo.body1">@transaction.Description</MudText>
                 <MudStack Row="true">
-                  <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.Status.ToString()</MudText>
-                  <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.CreatedAt.ToLocalTime().ToString("MMM dd, hh:mm tt")</MudText>
-                  <MudText Typo="Typo.caption" Class="d-block d-sm-inline"> - @(transaction?.TransactionNumber)</MudText>
+                  @* <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.Status.ToString()</MudText> *@
+                  <MudText Typo="Typo.caption" Class="pa-0 ma-0">@transaction.CreatedAt.ToLocalTime().ToString("dd MMMM, HH:mm")</MudText>
+                  <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                    <MudText Typo="Typo.caption" Class="d-block d-sm-inline"> - @(transaction?.TransactionNumber)</MudText>
+                  </MudHidden>
                 </MudStack>
               </MudStack>
             </MudStack>
@@ -93,7 +96,7 @@
         </MudPaper>
       }
       <MudItem Class="d-flex justify-center mt-4">
-        <MudButton DropShadow="false" Variant="Variant.Text" Color="Color.Primary" OnClick="NavigateToAllTransactions">See all</MudButton>
+        <MudButton FullWidth DropShadow="false" Variant="Variant.Filled" Color="Color.Surface" OnClick="NavigateToAllTransactions">See all</MudButton>
       </MudItem>
     }
     else

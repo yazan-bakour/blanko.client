@@ -1,0 +1,27 @@
+@namespace Banko.Client.Components
+@using MudBlazor
+@inject ISnackbar Snackbar
+
+@code {
+  public void Show(string message, Severity severity = Severity.Normal)
+  {
+
+    Snackbar.Add(message, severity, config =>
+    {
+      config.ShowCloseIcon = true;
+      config.VisibleStateDuration = 3000;
+      config.HideTransitionDuration = 500;
+      config.ShowTransitionDuration = 500;
+      config.SnackbarVariant = Variant.Filled;
+    });
+  }
+
+  public void ShowSuccess(string message) => Show(message, Severity.Success);
+  public void ShowError(string message) => Show(message, Severity.Error);
+  public void ShowWarning(string message) => Show(message, Severity.Warning);
+  public void ShowInfo(string message) => Show(message, Severity.Info);
+  protected override void OnInitialized()
+  {
+    base.OnInitialized();
+  }
+}

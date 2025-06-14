@@ -8,6 +8,7 @@
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web
 @using Banko.Client.Pages.Main
+@using Banko.Client.Components
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
@@ -31,10 +32,10 @@
         <MudText Typo="Typo.h6">Account details</MudText>
       </MudDrawerHeader>
       <MudItem>
-        <MudStack Spacing="3" Class="pt-3">
+        <MudStack Spacing="3" Class="mt-5">
 
           <MudTextField T="string" Label="IBAN" Value="Account?.AccountNumber" Variant="Variant.Filled" ReadOnly="true"
-            Adornment="Adornment.End" IconSize="Size.Small" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+            Adornment="Adornment.End" IconSize="Size.Medium" AdornmentIcon="@Icons.Material.Filled.ContentCopy"
             Underline="false" AdornmentColor="Color.Primary"
             OnAdornmentClick="@(() => CopyToClipboardAsync(Account?.AccountNumber ?? string.Empty))" />
 
@@ -119,5 +120,9 @@
     background-color: var(--mud-palette-surface);
     width: 400px;
     @* --mud-palette-primary-hover: rgba(237 240 243 / 31%) !important; *@
+  }
+
+  .mud-input.mud-input-filled {
+    border-radius: 4px;
   }
 </style>

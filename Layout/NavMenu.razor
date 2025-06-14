@@ -9,8 +9,8 @@
 @inject LoadingService LoadingService
 @inject IAuthService AuthService
 
-<MudDrawer @bind-Open="@_open" Class="navmenu-override-primary-hover relative" Overlay="false" Fixed="false"
-  Breakpoint="@Breakpoint.Md" Elevation="0" Variant="@DrawerVariant.Mini" ClipMode="DrawerClipMode.Never">
+<MudDrawer @bind-Open="@_open" Class="relative" Overlay="false" Fixed="false" Breakpoint="@Breakpoint.Md" Elevation="0"
+  Variant="@DrawerVariant.Mini" ClipMode="DrawerClipMode.Never">
   <MudDrawerHeader Class="justify-space-between pa-0 align-center">
     <AuthorizeView>
       <Authorized>
@@ -110,8 +110,3 @@
     return currentUri.Contains("/profile/account") ? "active" : string.Empty;
   }
 }
-<style scoped>
-  .navmenu-override-primary-hover {
-    @* --mud-palette-primary-hover: rgba(9, 47, 82, 1) !important; *@
-  }
-</style>

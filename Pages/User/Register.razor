@@ -10,7 +10,7 @@
 @inject LoadingService LoadingService
 @inject AuthStateProvider AuthState
 
-<MudCard Class="pa-4">
+<MudCard Class="pa-4" Elevation="0">
   <MudCardContent>
     <MudForm Model="@registerModel" @ref="form" @bind-IsValid="@success">
       <MudTextField Label="Full Name" @bind-Value="registerModel.FullName" For="@(() => registerModel.FullName)"
