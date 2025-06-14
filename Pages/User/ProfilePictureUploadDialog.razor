@@ -12,8 +12,8 @@
     <div Class="dialog-height">
       <MudTabs Rounded="true" Centered="true" PanelClass="mt-4">
         <MudTabPanel Text="From URL">
-          <MudTextField @bind-Value="imageUrl" Label="Image URL" Variant="Variant.Outlined" Class="mt-3"
-            Immediate="true" HelperText="Enter the direct URL of the image." />
+          <MudTextField @bind-Value="imageUrl" Label="Image URL" Class="mt-3" Immediate="true"
+            HelperText="Enter the direct URL of the image." />
           @if (!string.IsNullOrWhiteSpace(imageUrl))
           {
             <div class="d-flex justify-center mt-3">
@@ -55,7 +55,7 @@
     </div>
   </DialogContent>
   <DialogActions>
-    <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="CompleteSelection"
+    <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="CompleteSelection"
       Disabled="(string.IsNullOrWhiteSpace(imageUrl)) || isUploading">
       @if (isUploading)
       {
@@ -67,7 +67,7 @@
         <MudText>Complete</MudText>
       }
     </MudButton>
-    <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
+    <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="Cancel">Cancel</MudButton>
   </DialogActions>
 </MudDialog>
 

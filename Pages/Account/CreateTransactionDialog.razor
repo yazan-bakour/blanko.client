@@ -40,8 +40,9 @@
     </MudForm>
   </DialogContent>
   <DialogActions>
-    <MudButton OnClick="Cancel">Cancel</MudButton>
-    <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Create Transaction</MudButton>
+    <MudButton DropShadow="false" OnClick="Cancel">Cancel</MudButton>
+    <MudButton DropShadow="false" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Create Transaction
+    </MudButton>
   </DialogActions>
 </MudDialog>
 

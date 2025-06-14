@@ -14,9 +14,9 @@
     <MudItem Style="height: 50px;">
       @if (UserState.Preference.Privacy != _originalHideEmail)
       {
-        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleEmailSaveAsync" Class="mr-2"
-          Disabled="LoadingService.IsLoading">Save</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+        <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleEmailSaveAsync"
+          Class="mr-2" Disabled="LoadingService.IsLoading">Save</MudButton>
+        <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
           Disabled="LoadingService.IsLoading">
           Cancel</MudButton>
       }
@@ -25,8 +25,7 @@
 
   <MudGrid Class="mt-4">
     <MudItem xs="12">
-      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail"
-        UncheckedColor="Color.Info" Color="Color.Primary">
+      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail" Color="Color.Primary">
         @(UserState.Preference.Privacy ? "Hide Email" : "Show Email")
       </MudSwitch>
     </MudItem>

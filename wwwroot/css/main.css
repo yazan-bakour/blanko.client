@@ -11,14 +11,14 @@ body {
   margin: 0;
 }
 
-  .mud-nav-link {
-    border-radius: 5px;
-  }
+.mud-nav-link {
+  border-radius: 5px;
+}
 
-  .active .mud-nav-link-text {
-    color: var(--mud-palette-primary);
-    font-weight: 500;
-  }
+.active .mud-nav-link-text {
+  color: var(--mud-palette-primary);
+  font-weight: 500;
+}
 
 .mud-appbar {
   background: transparent;
@@ -30,14 +30,6 @@ body {
   box-shadow: none;
 }
 
-.mud-table {
-  background: transparent;
-  box-shadow: none;
-}
-
-.mud-button.mud-button-filled {
-    box-shadow: none !important;
-  }
 
 h1:focus {
   outline: none;
@@ -85,48 +77,4 @@ h1:focus {
     #b32121;
   padding: 1rem 1rem 1rem 3.7rem;
   color: white;
-}
-
-.responsive-height-item {
-  height: auto; /* Default for xs (< 600px) */
-}
-
-/* Small screens (sm: 600px to 959px) */
-@media (min-width: 600px) and (max-width: 959.95px) {
-  .responsive-height-item {
-    height: auto;
-  }
-  .responsive-height-item > div {
-    height: 100%;
-  }
-}
-
-/* Medium screens (md: 960px to 1279px) */
-@media (min-width: 960px) and (max-width: 1279.95px) {
-  .responsive-height-item {
-    height: 530px;
-  }
-  .responsive-height-item > div {
-    height: 100%;
-  }
-}
-
-/* Large screens (lg: 1280px to 1919px) */
-@media (min-width: 1280px) {
-  .responsive-height-item {
-    height: 433px;
-  }
-  .responsive-height-item > div {
-    height: 100%;
-  }
-}
-
-/* Extra Large screens (xl: 1920px to 2559px) */
-@media (min-width: 1920px) and (max-width: 2559.95px) {
-  /* comingup */
-}
-
-/* Extra Extra Large screens (xxl: >= 2560px) */
-@media (min-width: 2560px) {
-  /* comingup */
 }

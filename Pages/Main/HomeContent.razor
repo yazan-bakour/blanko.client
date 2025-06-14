@@ -32,11 +32,28 @@
         <MudText Typo="Typo.h5">@CurrencyFormatter.FormatCurrencySymbol(Account?.Balance ?? 0m, Account?.Currency.ToString() ?? "USD")</MudText> 
         <MudText Typo="Typo.body2">@(Account?.Type) - @(Account?.Currency.ToString() ?? "-")</MudText>
       </MudStack>
-      <MudStack Row="true" Spacing="1">
-        <MudButton OnClick="@(() => OpenCreateTransactionDialog(Account ?? new AccountRead()))" Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Payment" IconColor="Color.Primary">Payment</MudButton>
 
-        <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="@StatementDialog" StartIcon="@Icons.Material.Filled.Description" IconColor="Color.Primary">Statement</MudButton>
-        <MudButton Size="Size.Small" Variant="Variant.Filled" OnClick="@ToggleDrawer" StartIcon="@Icons.Material.Filled.AccountBalanceWallet" IconColor="Color.Primary">Account details</MudButton>
+      <MudStack Row="true">
+        <MudButton DropShadow="false" OnClick="@(() => OpenCreateTransactionDialog(Account ?? new AccountRead()))" Size="Size.Small" Variant="Variant.Filled">
+          <MudIcon Icon="@Icons.Material.Filled.Payment" Color="Color.Primary" />
+          <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudText Typo="Typo.button" Class="ml-2">Payment</MudText>
+          </MudHidden>
+        </MudButton>
+
+        <MudButton DropShadow="false" Size="Size.Small" Variant="Variant.Filled" OnClick="@StatementDialog"> 
+          <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Primary" />
+          <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudText Typo="Typo.button" Class="ml-2">Statement</MudText>
+          </MudHidden>
+        </MudButton>
+        
+        <MudButton DropShadow="false" Size="Size.Small" Variant="Variant.Filled" OnClick="@ToggleDrawer">
+          <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Primary" />
+          <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudText Typo="Typo.button" Class="ml-2">Account details</MudText>
+          </MudHidden>
+        </MudButton>
       </MudStack>
     </MudPaper>
   </MudItem>
@@ -76,7 +93,7 @@
         </MudPaper>
       }
       <MudItem Class="d-flex justify-center mt-4">
-        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="NavigateToAllTransactions">See all</MudButton>
+        <MudButton DropShadow="false" Variant="Variant.Text" Color="Color.Primary" OnClick="NavigateToAllTransactions">See all</MudButton>
       </MudItem>
     }
     else

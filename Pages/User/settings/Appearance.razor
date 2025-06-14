@@ -14,9 +14,9 @@
     <MudItem Style="height: 50px;">
       @if (UserState.Preference.Theme != _originalTheme)
       {
-        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
+        <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+        <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
           Disabled="LoadingService.IsLoading">
           Cancel</MudButton>
       }

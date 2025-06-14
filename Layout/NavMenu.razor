@@ -26,10 +26,10 @@
         }
         else
         {
-          <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+          <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert="true">
             <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>B</b></MudText>
           </MudHidden>
-          <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+          <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudText Class="pl-4" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
           </MudHidden>
         }
@@ -40,10 +40,10 @@
         {
           NavigationManager.NavigateTo("/login", true);
         }
-        <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+        <MudHidden Breakpoint="Breakpoint.SmAndDown" Invert="true">
           <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>B</b></MudText>
         </MudHidden>
-        <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
           <MudText Class="pl-7" Typo="Typo.h5" Color="Color.Primary"><b>Banko</b></MudText>
         </MudHidden>
       </NotAuthorized>
@@ -112,6 +112,6 @@
 }
 <style scoped>
   .navmenu-override-primary-hover {
-    --mud-palette-primary-hover: rgba(9, 47, 82, 1) !important;
+    @* --mud-palette-primary-hover: rgba(9, 47, 82, 1) !important; *@
   }
 </style>

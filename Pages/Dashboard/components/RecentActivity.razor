@@ -1,16 +1,19 @@
 @using Banko.Client.Models.Transaction
 @using Banko.Client.Helper
 
-<MudPaper Class="pa-4 rounded-lg" Elevation="0">
-  <MudText Typo="Typo.h6" Class="mb-2">
-    <MudIcon Icon="@Icons.Material.Filled.Sync" Class="mr-2" />Recent Activity
-  </MudText>
+<MudPaper Class="pa-4 rounded-lg mud-height-full" Elevation="0">
+
+  <MudStack Row AlignItems="AlignItems.Center" Class="mb-2">
+    <MudIcon Icon="@Icons.Material.Filled.Sync" />
+    <MudText Typo="Typo.h6" Class="mr-2">Recent Activity</MudText>
+  </MudStack>
 
   @if (transactions?.Length > 0)
   {
-    <MudItem xs="12" Class="d-flex align-items-center">
-      <MudText Typo="Typo.h4" Class="mr-2">@transactions.Length</MudText>
-      <MudText Typo="Typo.body2">Total Transactions</MudText>
+
+    <MudItem xs="12" Class="d-flex align-baseline">
+      <MudText Typo="Typo.h5" Class="mr-2">@transactions.Length</MudText>
+      <MudText Typo="Typo.body2">Total Accounts</MudText>
     </MudItem>
 
     <MudDivider Class="my-4" />

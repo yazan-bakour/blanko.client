@@ -33,6 +33,7 @@ namespace Banko.Client.Helper
       PaletteLight = new PaletteLight()
       {
         Primary = Light.Primery,
+        PrimaryDarken = new("#003874"),
         Secondary = Colors.Indigo.Darken2,
         Surface = Colors.Blue.Lighten5,
         TextPrimary = Light.Primery,
@@ -40,7 +41,7 @@ namespace Banko.Client.Helper
         DrawerText = Light.Primery,
         DrawerIcon = Light.Primery,
         LinesInputs = Colors.Gray.Darken2,
-        Divider = Colors.Gray.Darken2,
+        Divider = Light.Primery,
         TableLines = Colors.Gray.Darken1,
         ActionDefault = Light.ActionDefault,
         ActionDisabled = Light.ActionDefault,
@@ -52,6 +53,7 @@ namespace Banko.Client.Helper
       PaletteDark = new PaletteDark()
       {
         Primary = Colors.LightBlue.Lighten5,
+        PrimaryDarken = new("#d6e9f7"),
         Secondary = Colors.Indigo.Darken3,
         Dark = Colors.LightBlue.Darken4,
         Info = Colors.Blue.Accent1,

@@ -1,23 +1,33 @@
 @using Banko.Client.Models.Account
 @using Banko.Client.Helper
 
-<MudPaper Class="pa-4 rounded-lg" Elevation="0">
-  <MudText Typo="Typo.h6" Class="mb-2">
-    <MudIcon Icon="@Icons.Material.Filled.Euro" Class="mr-2" />Total Balance
-  </MudText>
+<MudPaper Class="pa-4 rounded-lg mud-height-full" Elevation="0">
+
+  <MudItem xs="12" Class="d-flex mb-2 align-center">
+    <MudIcon Icon="@Icons.Material.Filled.Euro" Class="mr-2" />
+    <MudText Typo="Typo.h6" Class="mr-2">Total Balance</MudText>
+  </MudItem>
 
   @if (accounts?.Length > 0)
   {
-    <MudText Typo="Typo.h3">@CurrencyFormatter.FormatCurrency(accounts.Sum(a => a.Balance))</MudText>
+    <MudText Typo="Typo.h6">@CurrencyFormatter.FormatCurrency(accounts.Sum(a => a.Balance))</MudText>
     <MudText Typo="Typo.body2">Across all accounts</MudText>
 
     <MudDivider Class="my-4" />
 
-    <MudText Typo="Typo.body2">Highest Balance:</MudText>
     @if (accounts.OrderByDescending(a => a.Balance).FirstOrDefault() is AccountRead topAccount)
     {
-      <MudText>@topAccount.AccountNumber: @CurrencyFormatter.FormatCurrency(topAccount.Balance)</MudText>
+      <MudStack Row AlignItems="AlignItems.Center" Class="mb-2">
+        <MudText Typo="Typo.body2">Highest Balance:</MudText>
+        <MudText Typo="Typo.subtitle2">@CurrencyFormatter.FormatCurrency(topAccount.Balance)</MudText>
+      </MudStack>
+
+      <MudStack Spacing="2">
+        <MudText Typo="Typo.body2">Highest Balance Account:</MudText>
+        <MudText Typo="Typo.subtitle2">@topAccount.AccountNumber</MudText>
+      </MudStack>
     }
+
   }
   else
   {

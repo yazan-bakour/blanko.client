@@ -14,68 +14,76 @@
 
 @attribute [Authorize]
 
-<MudForm Model="@detailsData" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess">
-  <MudItem Class="d-flex">
-    <MudLink Class="w-100 d-flex justify-start rounded-lg pb-2"
+<MudItem Class="d-flex justify-space-between">
+  @* <MudLink Class="w-100 d-flex justify-start rounded-lg pb-2"
       OnClick="@(() => NavigationManager.NavigateTo("/profile"))">
+      
       <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.KeyboardBackspace" />
-    </MudLink>
+    </MudLink> *@
+  <MudIconButton Icon="@Icons.Material.Filled.KeyboardBackspace" Color="Color.Primary" Size="Size.Medium"
+    OnClick="@(() => NavigationManager.NavigateTo("/profile"))" aria-label="Back button" Style="margin-left: -10px;" />
 
-    <MudItem Class="d-flex justify-end">
-      @if (_isEditing)
-      {
-        <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
-          Disabled="LoadingService.IsLoading">Save</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
-          Disabled="LoadingService.IsLoading">Cancel</MudButton>
-      }
-      else
-      {
-        <MudButton Variant="Variant.Filled" OnClick="StartEdit">Edit</MudButton>
-      }
-    </MudItem>
+  <MudItem Class="d-flex justify-end align-self-end" Style="height: 36px;">
+    @if (_isEditing)
+    {
+      <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
+        Disabled="LoadingService.IsLoading">Save</MudButton>
+      <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+        Disabled="LoadingService.IsLoading">Cancel</MudButton>
+    }
+    else
+    {
+      <MudButton DropShadow="false" Variant="Variant.Filled" OnClick="StartEdit">Edit</MudButton>
+    }
   </MudItem>
+</MudItem>
+<MudForm Model="@detailsData" @ref="form" ValidationDelay="0" @bind-IsValid="@isSuccess" Spacing="3">
+  <MudStack Class="d-flex flex-column">
+    <MudText Typo="Typo.h6" Color="Color.Primary">Personal Details</MudText>
+    <MudTextField Label="First Name" @bind-Value="detailsData.FirstName" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" Required />
+    <MudTextField Label="Last Name" @bind-Value="detailsData.LastName" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" Required />
 
-  <MudItem Class="d-flex flex-column">
-    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mb-2">Personal Details</MudText>
-    <MudTextField Label="First Name" @bind-Value="detailsData.FirstName" Disabled="!_isEditing" Variant="Variant.Filled"
-      Class="mb-3" Required />
-    <MudTextField Label="Last Name" @bind-Value="detailsData.LastName" Disabled="!_isEditing" Variant="Variant.Filled"
-      Class="mb-3" Required />
+    @{
+      if (_isEditing)
+      {
+        <MudTextField Label="Password" @bind-Value="detailsData.NewPassword" Disabled="!_isEditing"
+          InputType="@(_passwordVisible? InputType.Text: InputType.Password)"
+          Adornment="@(_isEditing? Adornment.End: Adornment.None)"
+          AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+          OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Variant="Variant.Filled" Immediate="true" />
+      }
+    }
 
-    <MudTextField Label="Password" @bind-Value="detailsData.NewPassword" Disabled="!_isEditing"
-      InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
-      AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
-      OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Variant="Variant.Filled" Class="mb-3"
-      Immediate="true" />
-
-    <MudDatePicker Class="mb-3" Label="Date of Birth" Editable="true" Disabled="!_isEditing" Variant="Variant.Filled"
-      Placeholder="Select Date of Birth" DateFormat="dd.MM.yyyy" @bind-Date="detailsData.DateOfBirth"
-      Mask="@(new DateMask("dd.MM.yyyy"))" PickerVariant="PickerVariant.Dialog" />
+    <MudDatePicker Label="Date of Birth" Editable="true" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" Placeholder="Select Date of Birth" DateFormat="dd.MM.yyyy"
+      @bind-Date="detailsData.DateOfBirth" Mask="@(new DateMask("dd.MM.yyyy"))" PickerVariant="PickerVariant.Dialog"
+      Adornment="@(_isEditing? Adornment.End: Adornment.None)" />
 
     <MudSelect T="UserGender ?" Label="Gender" @bind-Value="detailsData.Gender" Disabled="!_isEditing"
-      Variant="Variant.Filled" FullWidth Class="mb-3" AnchorOrigin="Origin.BottomLeft">
+      Variant="_isEditing? Variant.Filled : Variant.Text" FullWidth AnchorOrigin="Origin.BottomLeft"
+      Adornment="_isEditing ? Adornment.End : Adornment.None">
       <MudSelectItem T="UserGender ?" Value="@(UserGender.Male)">Male</MudSelectItem>
       <MudSelectItem T="UserGender ?" Value="@(UserGender.Female)">Female</MudSelectItem>
     </MudSelect>
-
     <MudTextField Label="Nationality" @bind-Value="detailsData.Nationality" Disabled="!_isEditing"
-      Variant="Variant.Filled" FullWidth Class="mb-3" />
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
 
-    <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-4 mb-3">Contact Information</MudText>
+    <MudText Typo="Typo.h6" Color="Color.Primary">Contact Information</MudText>
     <MudTextField Label="Phone Number" @bind-Value="detailsData.PhoneNumber" Disabled="!_isEditing"
-      Variant="Variant.Filled" FullWidth Class="mb-3" />
-    <MudTextField Label="Address" @bind-Value="detailsData.Address" Disabled="!_isEditing" Variant="Variant.Filled"
-      FullWidth Class="mb-3" />
-    <MudTextField Label="City" @bind-Value="detailsData.City" Disabled="!_isEditing" Variant="Variant.Filled" FullWidth
-      Class="mb-3" />
-    <MudTextField Label="State" @bind-Value="detailsData.State" Disabled="!_isEditing" Variant="Variant.Filled"
-      FullWidth Class="mb-3" />
-    <MudTextField Label="Zip Code" @bind-Value="detailsData.ZipCode" Disabled="!_isEditing" Variant="Variant.Filled"
-      FullWidth Class="mb-3" />
-    <MudTextField Label="Country" @bind-Value="detailsData.Country" Disabled="!_isEditing" Variant="Variant.Filled"
-      FullWidth Class="mb-3" />
-  </MudItem>
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+    <MudTextField Label="Address" @bind-Value="detailsData.Address" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+    <MudTextField Label="City" @bind-Value="detailsData.City" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+    <MudTextField Label="State" @bind-Value="detailsData.State" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+    <MudTextField Label="Zip Code" @bind-Value="detailsData.ZipCode" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+    <MudTextField Label="Country" @bind-Value="detailsData.Country" Disabled="!_isEditing"
+      Variant="_isEditing? Variant.Filled: Variant.Text" FullWidth />
+  </MudStack>
 </MudForm>
 
 @code {

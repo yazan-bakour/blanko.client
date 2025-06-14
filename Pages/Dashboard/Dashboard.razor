@@ -21,57 +21,53 @@
 
 <MudGrid>
   <!-- User welcome and summary -->
-  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+  <MudItem xs="12" sm="6" md="4">
     <Welcome name="@currentUser?.User.FullName" createdAt="@currentUser?.User.CreatedAt" transactions="transactions" />
   </MudItem>
 
   <!-- Accounts Summary -->
-  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+  <MudItem xs="12" sm="6" md="4">
     <AccountSummery accounts="accounts" />
   </MudItem>
 
   <!-- Total Balance -->
-  <MudItem xs="12" sm="6" md="4" Class="responsive-height-item">
+  <MudItem xs="12" sm="12" md="4">
     <MudGrid>
-      <MudItem xs="12">
+      <MudItem xs="12" sm="6" md="12">
         <TotalBalance accounts="accounts" />
       </MudItem>
-      <MudItem xs="12">
+      <MudItem xs="12" sm="6" md="12">
         <AccountInsights accounts="accounts" />
       </MudItem>
     </MudGrid>
   </MudItem>
 
   <!-- Recent Activity -->
-  <MudItem xs="12" sm="6" md="4">
+  <MudItem xs="12" sm="12" md="4">
     <MudGrid>
-      <MudItem Class="responsive-height-item">
-        <MudGrid>
-          <MudItem xs="12">
-            <RecentActivity transactions="transactions" />
-          </MudItem>
-          <MudItem xs="12">
-            <MonthlySpending transactions="transactions" />
-          </MudItem>
-        </MudGrid>
+      <MudItem xs="12" sm="6" md="12">
+        <RecentActivity transactions="transactions" />
+      </MudItem>
+      <MudItem xs="12" sm="6" md="12">
+        <MonthlySpending transactions="transactions" />
       </MudItem>
     </MudGrid>
   </MudItem>
 
   <!-- Recent Transactions Table -->
-  <MudItem xs="12" sm="8" Class="responsive-height-item">
+  <MudItem xs="12" sm="12" md="8">
     <RecentTransactions transactions="transactions" />
   </MudItem>
 
   <!-- Stacked bar Chart -->
-  <MudItem xs="6">
+  <MudItem xs="12" sm="12" md="8">
     <StackedBarChart transactions="transactions?.ToList()" accounts="accounts?.ToList()" />
   </MudItem>
 
   <!-- Upcoming -->
-  <MudItem xs="6">
+  <MudItem xs="12" sm="12" md="4">
     <MudGrid>
-      <MudItem xs="12">
+      <MudItem xs="12" sm="6" md="12">
         <MudPaper Class="pa-4" Style="height: 212px;" Elevation="0">
           <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.SignalWifiStatusbarConnectedNoInternet4" Class="mr-2" />
@@ -79,7 +75,7 @@
           </MudText>
         </MudPaper>
       </MudItem>
-      <MudItem xs="12">
+      <MudItem xs="12" sm="6" md="12">
         <MudPaper Class="pa-4" Style="height: 212px;" Elevation="0">
           <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.BrowserUpdated" Class="mr-2" />

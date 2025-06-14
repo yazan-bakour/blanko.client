@@ -86,11 +86,11 @@ else
               </MudItem>
             }
             <MudItem xs="12" Class="d-flex justify-end mt-4">
-              <MudButton StartIcon="@Icons.Material.Filled.EditNote" Color="Color.Secondary"
+              <MudButton DropShadow="false" StartIcon="@Icons.Material.Filled.EditNote" Color="Color.Secondary"
                 OnClick="@(() => HandleBulkUpdate(account))">
                 Bulk Update
               </MudButton>
-              <MudButton StartIcon="@Icons.Material.Filled.Payment" Color="Color.Primary"
+              <MudButton DropShadow="false" StartIcon="@Icons.Material.Filled.Payment" Color="Color.Primary"
                 OnClick="@(() => OpenCreateTransactionDialog(account))">
                 New Transaction
               </MudButton>

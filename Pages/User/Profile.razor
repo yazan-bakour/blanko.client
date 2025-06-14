@@ -48,9 +48,9 @@
           <MudItem Class="mt-2">
             @if (_isEditing)
             {
-              <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync"
+              <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync"
                 Disabled="LoadingService.IsLoading">Save Changes</MudButton>
-              <MudButton Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
+              <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Default" OnClick="CancelEdit"
                 Disabled="LoadingService.IsLoading">
                 Cancel</MudButton>
             }
@@ -60,14 +60,14 @@
 
       <!--Profile settings-->
       <MudItem xs="12" Class="mt-4">
-        <MudButton Variant="Variant.Filled" Class="w-100 d-flex justify-start rounded-lg py-4"
+        <MudButton FullWidth DropShadow="false" Variant="Variant.Filled" Class="d-flex justify-start rounded-lg py-4"
           OnClick="@(() => NavigationManager.NavigateTo("/profile/account"))">
           <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.PermIdentity" />
           <MudText>Personal details</MudText>
         </MudButton>
 
-        <MudButton Variant="Variant.Filled" Class="w-100 d-flex justify-start rounded-lg py-4 mt-4"
-          OnClick="@(() => HandleLogout())">
+        <MudButton FullWidth DropShadow="false" Variant="Variant.Filled"
+          Class="d-flex justify-start rounded-lg py-4 mt-4" OnClick="@(() => HandleLogout())">
           <MudIcon Class="mr-4" Icon="@Icons.Material.Filled.Logout" />
           <MudText>Log out</MudText>
         </MudButton>
