@@ -8,7 +8,7 @@
 @inject LoadingService LoadingService
 @inject ISnackbar Snackbar
 
-<MudPaper Class="pa-4 mt-4" Elevation="0">
+<MudPaper Class="pa-4" Elevation="0">
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Appearance Settings</MudText>
     <MudItem Style="height: 50px;">
@@ -24,7 +24,7 @@
   </MudItem>
 
   <MudGrid Class="mt-4">
-    <MudItem xs="12">
+    <MudItem>
       <MudSwitch T="bool" Color="Color.Primary" Value="UserState.Preference.Theme" ValueChanged="OnThemeSwitchChanged">
         @(UserState.Preference.Theme ? "Dark Mode" : "Light Mode")
       </MudSwitch>

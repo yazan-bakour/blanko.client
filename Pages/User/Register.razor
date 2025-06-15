@@ -18,7 +18,9 @@
       <MudTextField Label="Email" @bind-Value="registerModel.Email" For="@(() => registerModel.Email)" Immediate="true"
         Required />
       <MudTextField Label="Password" @bind-Value="registerModel.Password" For="@(() => registerModel.Password)"
-        Immediate="true" Required />
+        InputType="@(_passwordVisible? InputType.Text: InputType.Password)" Adornment="Adornment.End"
+        AdornmentIcon="@(_passwordVisible? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+        OnAdornmentClick="() => _passwordVisible = !_passwordVisible" Immediate="true" Required />
     </MudForm>
   </MudCardContent>
   <MudCardActions Class="d-flex">
@@ -33,6 +35,7 @@
   private UserRegister registerModel = new();
   private bool success;
   private MudForm? form;
+  private bool _passwordVisible = false;
 
   private async Task HandleRegister()
   {

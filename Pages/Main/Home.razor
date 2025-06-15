@@ -1,6 +1,7 @@
 @page "/"
 @using Banko.Client.Models.Account
 @using Banko.Client.Models.Transaction
+@using Banko.Client.Models.User
 @using Banko.Client.Services
 @using Banko.Client.Services.Account
 @using Banko.Client.Services.User
@@ -8,7 +9,9 @@
 @using MudBlazor
 @using Microsoft.AspNetCore.Components.Web
 @using Banko.Client.Pages.Main
+@using Banko.Client.Pages.Account
 @using Banko.Client.Components
+@using Banko.Client.Helper
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
@@ -18,11 +21,15 @@
 @inject AccountStateService AccountState
 @inject UserStateService UserState
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
 
+@attribute [Authorize]
 <PageTitle>Home</PageTitle>
 
-
+<OpenDialog @ref="dialog" />
 <MudItem Class="relative overflow-hidden mud-drawer-container">
+
+  <!--Drawer Content-->
   <MudDrawerContainer Class="mud-height-full">
     <MudDrawer Class="mud-drawer-account" @bind-Open="@_open" Anchor="Anchor.Right" Elevation="0"
       Variant="@DrawerVariant.Persistent">
@@ -63,45 +70,182 @@
         </MudStack>
       </MudItem>
     </MudDrawer>
-    <HomeContent @bind-Open="_open" ToggleDrawer="@ToggleDrawer" />
+
+    <!--Main Content-->
+    <MudItem xs="12" Class="pr-2">
+      <MudItem xs="12">
+        <MudPaper Elevation="0" Class="d-flex justify-space-between align-center pa-2 mb-2">
+          <MudStack Spacing="0">
+            <MudText Typo="Typo.h5">
+              <b><span class="balance-counter"
+                  data-prefix="@FormatUtilities.GetCurrencySymbol(Account?.Currency.ToString() ?? "USD")"
+                  style="--target:@(Convert.ToInt16(Account?.Balance ?? 0m))">
+
+                </span></b>
+            </MudText>
+            <MudText Typo="Typo.body2">@(Account?.Type) - @(Account?.Currency.ToString() ?? "-")</MudText>
+          </MudStack>
+
+          <MudStack Row="true">
+            <MudButton DropShadow="false" OnClick="@(() => OpenCreateTransactionDialog(Account ?? new AccountRead()))"
+              Size="Size.Small" Variant="Variant.Filled">
+              <MudIcon Icon="@Icons.Material.Filled.Payment" Color="Color.Primary" />
+              <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudText Typo="Typo.button" Class="ml-2">Payment</MudText>
+              </MudHidden>
+            </MudButton>
+
+            <MudButton DropShadow="false" Size="Size.Small" Variant="Variant.Filled" OnClick="@StatementDialog">
+              <MudIcon Icon="@Icons.Material.Filled.Description" Color="Color.Primary" />
+              <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudText Typo="Typo.button" Class="ml-2">Statement</MudText>
+              </MudHidden>
+            </MudButton>
+
+            <MudButton DropShadow="false" Size="Size.Small" Variant="Variant.Filled" OnClick="@ToggleDrawer">
+              <MudIcon Icon="@Icons.Material.Filled.AccountBalanceWallet" Color="Color.Primary" />
+              <MudHidden Breakpoint="Breakpoint.SmAndDown">
+                <MudText Typo="Typo.button" Class="ml-2">Account details</MudText>
+              </MudHidden>
+            </MudButton>
+          </MudStack>
+        </MudPaper>
+      </MudItem>
+      <!-- Transactions List Section -->
+      <HomeContent Transactions="Transactions" Accounts="Accounts" />
+    </MudItem>
   </MudDrawerContainer>
 </MudItem>
 
 @code
 {
-  private AccountRead? Account => AccountState.CurrentAccounts?.FirstOrDefault() ?? null;
+  private UserRead? CurrentUser;
+  private AccountRead? Account;
+  private AccountRead[]? Accounts;
+  private TransactionRead[]? Transactions;
   private bool _open = false;
   [Parameter] public EventCallback<bool> OpenChanged { get; set; }
   private void ToggleDrawer()
   {
     _open = !_open;
   }
+  private OpenDialog? dialog;
+  private bool isDataLoaded = false;
+
+  protected override async Task OnInitializedAsync()
+  {
+    UserState.OnUserStateChanged += HandleUserStateChanged;
+    AccountState.OnAccountStateChanged += HandleAccountStateChanged;
+    TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
+
+    if (UserState.CurrentUser == null || AccountState.CurrentAccounts == null)
+    {
+      await LoadInitialDataAsync();
+    }
+    else
+    {
+      CurrentUser = UserState.CurrentUser;
+      Accounts = AccountState.CurrentAccounts;
+      Account = AccountState.CurrentAccounts?.FirstOrDefault();
+      Transactions = TransactionState.CurrentTransactions;
+      isDataLoaded = true;
+    }
+  }
   private async Task LoadInitialDataAsync()
   {
     LoadingService.IsLoading = true;
-    StateHasChanged();
+
     try
     {
-      await UserState.LoadUserDataAsync();
-      if (UserState.CurrentUser != null)
+      if (UserState.CurrentUser == null)
       {
-        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
+        await UserState.LoadUserDataAsync();
+      }
+
+      CurrentUser = UserState.CurrentUser;
+
+      if (CurrentUser != null)
+      {
+        if (AccountState.CurrentAccounts == null)
+        {
+          await AccountState.InitializeAccountStateAsync(CurrentUser.User.Id);
+        }
+        Account = AccountState.CurrentAccounts?.FirstOrDefault();
+        Accounts = AccountState.CurrentAccounts;
+
+        if (TransactionState.CurrentTransactions == null)
+        {
+          await TransactionState.InitializeTransactionStateAsync();
+        }
+        Transactions = TransactionState.CurrentTransactions;
       }
     }
     catch (Exception ex)
     {
-      Snackbar.Add($"Error loading data: {ex.Message}", Severity.Error);
+      Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
     }
     finally
     {
+      isDataLoaded = true;
       LoadingService.IsLoading = false;
-      StateHasChanged();
     }
+  }
+
+  private void HandleUserStateChanged()
+  {
+    CurrentUser = UserState.CurrentUser;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void HandleAccountStateChanged()
+  {
+    Account = AccountState.CurrentAccounts?.FirstOrDefault();
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void HandleTransactionStateChanged()
+  {
+    Transactions = TransactionState.CurrentTransactions;
+    InvokeAsync(StateHasChanged);
+  }
+  private async Task StatementDialog()
+  {
+    var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+    await DialogService.ShowAsync<DownloadStatementDialog>(
+    "Download Statement", new DialogParameters(), options);
+  }
+  private async Task OpenCreateTransactionDialog(AccountRead sourceAccount)
+  {
+    if (dialog == null) return;
+    var dialogParameters = new DialogParameters<CreateTransactionDialog>();
+    dialogParameters.Add(x => x.PreSelectedSourceAccountNumber, sourceAccount.AccountNumber ?? string.Empty);
+
+    await dialog.OpenDialogAsync<CreateTransactionDialog, TransactionCreate>(
+    title: "Create New Transaction",
+    parameters: dialogParameters,
+    onSuccess: async (model) => await TransactionState.CreateTransaction(model),
+    successMessage: "Transaction created successfully!",
+    additionalActions: async () =>
+    {
+      if (UserState.CurrentUser != null)
+      {
+        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
+        await TransactionState.InitializeTransactionStateAsync(true);
+      }
+    }
+    );
   }
   private async Task CopyToClipboardAsync(string text)
   {
     await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
     Snackbar.Add("Copied to clipboard!", Severity.Success, config => { config.ShowCloseIcon = false; });
+  }
+  public void Dispose()
+  {
+    // Unsubscribe from events
+    UserState.OnUserStateChanged -= HandleUserStateChanged;
+    AccountState.OnAccountStateChanged -= HandleAccountStateChanged;
+    TransactionState.OnTransactionStateChanged -= HandleTransactionStateChanged;
   }
 }
 <style>

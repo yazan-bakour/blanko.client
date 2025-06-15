@@ -107,11 +107,21 @@ else
   public int userId { get; set; }
   private AccountRead[]? accounts => AccountState.CurrentAccounts;
   private OpenDialog? dialog;
+  private bool isDataLoaded = false; // use this for Skeleton loading
 
   protected override async Task OnInitializedAsync()
   {
     AccountState.OnAccountStateChanged += HandleStateChange;
-    await LoadAccountDataAsync(true);
+
+    if (AccountState.CurrentAccounts == null ||
+    (AccountState.cachedUserId.HasValue && AccountState.cachedUserId.Value != userId))
+    {
+      await LoadAccountDataAsync(true);
+    }
+    else
+    {
+      isDataLoaded = true;
+    }
   }
   private async Task OpenCreateDialog()
   {

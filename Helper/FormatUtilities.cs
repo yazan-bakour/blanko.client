@@ -6,6 +6,14 @@ namespace Banko.Client.Helper
 {
   public static class FormatUtilities
   {
+    public static string GetCurrencySymbol(string isoCode)
+    {
+      var region = System.Globalization.CultureInfo
+        .GetCultures(System.Globalization.CultureTypes.SpecificCultures)
+        .Select(c => new System.Globalization.RegionInfo(c.Name))
+        .FirstOrDefault(r => r.ISOCurrencySymbol == isoCode.ToUpper());
+      return region?.CurrencySymbol ?? isoCode;
+    }
     public static string GetFileHash(byte[] fileData)
     {
       using var sha256 = SHA256.Create();

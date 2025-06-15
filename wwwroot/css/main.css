@@ -11,6 +11,28 @@ body {
   margin: 0;
 }
 
+@property --num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+.balance-counter {
+  --target: 0;  
+  counter-reset: num var(--num);
+  animation: counter 1s ease-out forwards;
+}
+.balance-counter::after {
+  /* ← add a literal " " between prefix and counter */
+  content: attr(data-prefix) " " counter(num);
+  font: 600 1.5rem system-ui;
+}
+
+@keyframes counter {
+  from { --num: 0; }
+  to   { --num: var(--target); }
+}
+
 .mud-nav-link {
   border-radius: 5px;
 }

@@ -101,31 +101,57 @@
   private UserRead? currentUser;
   private AccountRead[]? accounts;
   private TransactionRead[]? transactions;
+  private bool isDataLoaded = false; // use this for Skeleton loading
 
   private string[] GetAccountLabels()
   {
     if (accounts == null || !accounts.Any()) return Array.Empty<string>();
     return accounts.Select(a => a.AccountNumber).ToArray();
   }
+
   protected override async Task OnInitializedAsync()
+  {
+    UserState.OnUserStateChanged += HandleUserStateChanged;
+    AccountState.OnAccountStateChanged += HandleAccountStateChanged;
+    TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
+
+    if (UserState.CurrentUser == null || AccountState.CurrentAccounts == null)
+    {
+      await LoadInitialDataAsync();
+    }
+    else
+    {
+      currentUser = UserState.CurrentUser;
+      accounts = AccountState.CurrentAccounts;
+      transactions = TransactionState.CurrentTransactions;
+      isDataLoaded = true;
+    }
+  }
+  private async Task LoadInitialDataAsync()
   {
     LoadingService.IsLoading = true;
 
     try
     {
-      UserState.OnUserStateChanged += HandleUserStateChanged;
-      AccountState.OnAccountStateChanged += HandleAccountStateChanged;
-      TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
+      if (UserState.CurrentUser == null)
+      {
+        await UserState.LoadUserDataAsync();
+      }
 
-      await UserState.LoadUserDataAsync();
       currentUser = UserState.CurrentUser;
 
       if (currentUser != null)
       {
-        await AccountState.InitializeAccountStateAsync(currentUser.User.Id);
+        if (AccountState.CurrentAccounts == null)
+        {
+          await AccountState.InitializeAccountStateAsync(currentUser.User.Id);
+        }
         accounts = AccountState.CurrentAccounts;
 
-        await TransactionState.InitializeTransactionStateAsync();
+        if (TransactionState.CurrentTransactions == null)
+        {
+          await TransactionState.InitializeTransactionStateAsync();
+        }
         transactions = TransactionState.CurrentTransactions;
       }
     }
@@ -135,6 +161,7 @@
     }
     finally
     {
+      isDataLoaded = true;
       LoadingService.IsLoading = false;
     }
   }

@@ -54,14 +54,14 @@ namespace Banko.Client.Helper
       },
       PaletteDark = new PaletteDark()
       {
-        Primary = Colors.LightBlue.Lighten5,
+        Primary = Colors.LightBlue.Lighten4,
         PrimaryDarken = new("#d6e9f7"),
         Secondary = Colors.Indigo.Darken3,
         Dark = Colors.LightBlue.Darken4,
         Info = Colors.Blue.Accent1,
-        TextDisabled = Colors.Gray.Lighten4,
         Surface = Dark.Surface,
-        TextPrimary = Colors.Gray.Lighten4,
+        TextDisabled = Colors.Gray.Lighten2,
+        TextPrimary = Colors.LightBlue.Lighten4,
         ActionDefault = Dark.ActionDefault,
         ActionDisabled = Dark.ActionDefault,
         ActionDisabledBackground = Light.ActionDisabledBackground,

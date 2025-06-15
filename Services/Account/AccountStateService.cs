@@ -5,7 +5,7 @@ namespace Banko.Client.Services.Account
 {
   public class AccountStateService(IAccountService accountService, ICacheValidator<AccountRead[]> cacheValidator)
   {
-    private int? cachedUserId = null;
+    public int? cachedUserId = null;
     public AccountRead[]? CurrentAccounts => cacheValidator.Data;
     public event Action? OnAccountStateChanged;
 
