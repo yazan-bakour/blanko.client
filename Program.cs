@@ -16,6 +16,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using MudBlazor;
 using Banko.Client.Components;
+using Banko.Client.State;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
@@ -41,6 +42,9 @@ builder.Services.AddScoped<UserStateService>();
 builder.Services.AddScoped<AccountStateService>();
 builder.Services.AddScoped<TransactionStateService>();
 builder.Services.AddScoped<ErrorService>();
+
+builder.Services.AddScoped<AccountComposable>();
+builder.Services.AddScoped<TransactionsComposable>();
 
 builder.Services.AddMudServices(config =>
 {

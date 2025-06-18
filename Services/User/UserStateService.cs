@@ -65,8 +65,10 @@ public class UserStateService(IUserService userService, ICacheValidator<UserRead
     NotifyUserStateChanged();
     return true;
   }
+
   public async Task LoadUserDataAsync()
   {
+    if (CurrentUser != null) return;
     try
     {
       var userData = await userService.GetCurrentUserProfileAsync();

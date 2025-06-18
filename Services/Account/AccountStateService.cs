@@ -49,7 +49,7 @@ namespace Banko.Client.Services.Account
       }
     }
 
-    private void NotifyAccountStateChanged()
+    public void NotifyAccountStateChanged()
     {
       OnAccountStateChanged?.Invoke();
     }

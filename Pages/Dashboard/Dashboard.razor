@@ -108,7 +108,6 @@
     if (accounts == null || !accounts.Any()) return Array.Empty<string>();
     return accounts.Select(a => a.AccountNumber).ToArray();
   }
-
   protected override async Task OnInitializedAsync()
   {
     UserState.OnUserStateChanged += HandleUserStateChanged;
@@ -135,7 +134,7 @@
     {
       if (UserState.CurrentUser == null)
       {
-        await UserState.LoadUserDataAsync();
+        @* await UserState.LoadUserDataAsync(); *@
       }
 
       currentUser = UserState.CurrentUser;

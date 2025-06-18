@@ -97,7 +97,7 @@
 
   protected override async Task OnInitializedAsync()
   {
-    await UserState.LoadUserDataAsync();
+    @* await UserState.LoadUserDataAsync(); *@
     var user = UserState.CurrentUser?.User;
     if (user == null) return;
     detailsData = UserState.CurrentUser?.ToUserUpdate() ?? new UserUpdate();

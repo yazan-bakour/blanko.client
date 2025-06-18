@@ -7,15 +7,16 @@
 @using Banko.Client.Services.Account
 @using Banko.Client.Services.Transaction
 @using Microsoft.AspNetCore.Components.Web
+@using Banko.Client.State
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject AccountStateService AccountState
 @inject TransactionStateService TransactionState
 @inject IDialogService DialogService
+@inject AccountComposable AccountComposable
 
 @attribute [Authorize]
-@implements IDisposable
 
 <PageTitle>Account</PageTitle>
 <OpenDialog @ref="dialog" />
@@ -24,7 +25,7 @@
 {
   <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
-else if (!accounts?.Any() ?? true)
+else if (!AccountComposable.Accounts?.Any() ?? true)
 {
   <MudItem xs="12" Class="d-flex justify-content-end mb-3">
     <MudButton DropShadow="false" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add"
@@ -44,7 +45,7 @@ else
   </MudItem>
 
   <MudExpansionPanels MultiExpansion="true" Elevation="0">
-    @foreach (var account in accounts!)
+    @foreach (var account in AccountComposable.Accounts!)
     {
       <MudExpansionPanel Text="@account.AccountNumber" Class="border-none mb-2">
 
@@ -103,26 +104,14 @@ else
 }
 
 @code {
-  [Parameter]
-  public int userId { get; set; }
-  private AccountRead[]? accounts => AccountState.CurrentAccounts;
+  [Parameter] public int userId { get; set; }
   private OpenDialog? dialog;
-  private bool isDataLoaded = false; // use this for Skeleton loading
 
-  protected override async Task OnInitializedAsync()
+  protected override async Task OnParametersSetAsync()
   {
-    AccountState.OnAccountStateChanged += HandleStateChange;
-
-    if (AccountState.CurrentAccounts == null ||
-    (AccountState.cachedUserId.HasValue && AccountState.cachedUserId.Value != userId))
-    {
-      await LoadAccountDataAsync(true);
-    }
-    else
-    {
-      isDataLoaded = true;
-    }
+    await AccountComposable.OnInitializeAsync(userId, true);
   }
+
   private async Task OpenCreateDialog()
   {
     if (dialog == null) return;
@@ -134,6 +123,7 @@ else
     onSuccess: async (model) => await AccountState.CreateAccount(model),
     successMessage: "Account created successfully!"
     );
+    await AccountComposable.OnInitializeAsync(userId, true);
   }
 
   private async Task OpenCreateTransactionDialog(AccountRead sourceAccount)
@@ -150,52 +140,10 @@ else
     successMessage: "Transaction created successfully!",
     additionalActions: async () =>
     {
-      await LoadAccountDataAsync(true);
+      await AccountComposable.OnInitializeAsync(userId, true);
       await TransactionState.InitializeTransactionStateAsync(true);
     }
     );
-  }
-
-  protected override void OnInitialized()
-  {
-    AccountState.OnAccountStateChanged += HandleStateChange;
-  }
-
-  protected override async Task OnParametersSetAsync()
-  {
-    await LoadAccountDataAsync(false);
-  }
-
-  private async Task LoadAccountDataAsync(bool forceRefresh = false)
-  {
-    if (LoadingService.IsLoading && !forceRefresh) return;
-    LoadingService.IsLoading = true;
-    try
-    {
-      await AccountState.InitializeAccountStateAsync(userId, forceRefresh);
-    }
-    catch (Exception ex)
-    {
-      Snackbar.Add($"Error loading accounts: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
-      LoadingService.IsLoading = false;
-      if (forceRefresh)
-      {
-        StateHasChanged();
-      }
-    }
-  }
-
-  private void HandleStateChange()
-  {
-    InvokeAsync(StateHasChanged);
-  }
-
-  public void Dispose()
-  {
-    AccountState.OnAccountStateChanged -= HandleStateChange;
   }
 
   private void HandleBulkUpdate(AccountRead account)

@@ -5,11 +5,12 @@
 @using Banko.Client.Services
 @using Banko.Client.Services.Transaction
 @using Banko.Client.Helper
+@using Banko.Client.State
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
-@inject TransactionStateService TransactionState
 @inject IDialogService DialogService
+@inject TransactionsComposable TransactionsComposable
 
 @attribute [Authorize]
 @implements IDisposable
@@ -90,32 +91,12 @@ else
 }
 
 @code {
-  @* public int transactionId { get; set; } *@
-  private TransactionRead[]? transactions => TransactionState.CurrentTransactions;
+  private TransactionRead[]? transactions => TransactionsComposable.CurrentTransactions;
 
   protected override async Task OnInitializedAsync()
   {
-    TransactionState.OnTransactionStateChanged += HandleStateChange;
-    await LoadTransactionDataAsync();
-  }
-
-  private async Task LoadTransactionDataAsync()
-  {
-    LoadingService.IsLoading = true;
-    StateHasChanged();
-    try
-    {
-      await TransactionState.InitializeTransactionStateAsync();
-    }
-    catch (Exception ex)
-    {
-      Snackbar.Add(ex.Message, Severity.Error);
-    }
-    finally
-    {
-      LoadingService.IsLoading = false;
-      StateHasChanged();
-    }
+    TransactionsComposable.RegisterComponent(HandleStateChange);
+    await TransactionsComposable.OnInitializedAsync(true);
   }
   private void HandleStateChange()
   {
@@ -123,6 +104,6 @@ else
   }
   public void Dispose()
   {
-    TransactionState.OnTransactionStateChanged -= HandleStateChange;
+    TransactionsComposable.UnregisterComponent(HandleStateChange);
   }
 }

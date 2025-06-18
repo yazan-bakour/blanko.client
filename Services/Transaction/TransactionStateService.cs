@@ -52,7 +52,7 @@ namespace Banko.Client.Services.Transaction
     string? period = null)
     => TransactionService.DownloadStatementPdfAsync(fromDate, toDate, period);
 
-    private void NotifyTransactionStateChanged()
+    public void NotifyTransactionStateChanged()
     {
       OnTransactionStateChanged?.Invoke();
     }

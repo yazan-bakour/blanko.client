@@ -40,7 +40,7 @@
     LoadingService.IsLoading = true;
     try
     {
-      await UserState.LoadUserDataAsync();
+      @* await UserState.LoadUserDataAsync(); *@
       var darkMode = GetDarkModePreference();
       UserState.Preference.Theme = darkMode;
       _originalTheme = darkMode;

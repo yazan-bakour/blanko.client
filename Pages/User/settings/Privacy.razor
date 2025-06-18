@@ -40,7 +40,7 @@
     try
     {
       LoadingService.IsLoading = true;
-      await UserState.LoadUserDataAsync();
+      @* await UserState.LoadUserDataAsync(); *@
       var privacy = GetPrivacy();
       UserState.Preference.Privacy = privacy;
       _originalHideEmail = privacy;

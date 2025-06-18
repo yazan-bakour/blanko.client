@@ -85,16 +85,14 @@
   private bool _isEditing = false;
   private MudForm? form;
   private bool isSuccess = false;
+  private UserRead? CurrentUser => UserState.CurrentUser;
 
   private async Task HandleLogout()
   {
     await AuthService.LogoutAsync();
   }
-
   protected override void OnInitialized()
   {
-    var user = UserState.CurrentUser?.User;
-    if (user == null) return;
     editParameters = UserState.CurrentUser?.ToUserUpdate() ?? new UserUpdate();
     originalParameters = new UserUpdate(editParameters);
   }

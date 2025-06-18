@@ -12,13 +12,15 @@
 @using Banko.Client.Pages.Account
 @using Banko.Client.Components
 @using Banko.Client.Helper
+@using Banko.Client.State
 
 @inject ISnackbar Snackbar
 @inject LoadingService LoadingService
 @inject TransactionStateService TransactionState
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
-@inject AccountStateService AccountState
+@inject AccountComposable AccountComposable
+@inject TransactionsComposable TransactionsComposable
 @inject UserStateService UserState
 @inject IJSRuntime JSRuntime
 @inject IDialogService DialogService
@@ -112,17 +114,16 @@
         </MudPaper>
       </MudItem>
       <!-- Transactions List Section -->
-      <HomeContent Transactions="Transactions" Accounts="Accounts" />
+      <HomeContent Transactions="Transactions" Accounts="AccountComposable.Accounts" />
     </MudItem>
   </MudDrawerContainer>
 </MudItem>
 
 @code
 {
-  private UserRead? CurrentUser;
-  private AccountRead? Account;
-  private AccountRead[]? Accounts;
-  private TransactionRead[]? Transactions;
+  private UserRead? CurrentUser => UserState.CurrentUser;
+  private AccountRead? Account => AccountComposable.Accounts?.FirstOrDefault();
+  private TransactionRead[]? Transactions => TransactionsComposable.CurrentTransactions;
   private bool _open = false;
   [Parameter] public EventCallback<bool> OpenChanged { get; set; }
   private void ToggleDrawer()
@@ -130,82 +131,42 @@
     _open = !_open;
   }
   private OpenDialog? dialog;
-  private bool isDataLoaded = false;
 
   protected override async Task OnInitializedAsync()
   {
     UserState.OnUserStateChanged += HandleUserStateChanged;
-    AccountState.OnAccountStateChanged += HandleAccountStateChanged;
-    TransactionState.OnTransactionStateChanged += HandleTransactionStateChanged;
-
-    if (UserState.CurrentUser == null || AccountState.CurrentAccounts == null)
-    {
-      await LoadInitialDataAsync();
-    }
-    else
-    {
-      CurrentUser = UserState.CurrentUser;
-      Accounts = AccountState.CurrentAccounts;
-      Account = AccountState.CurrentAccounts?.FirstOrDefault();
-      Transactions = TransactionState.CurrentTransactions;
-      isDataLoaded = true;
-    }
+    TransactionsComposable.RegisterComponent(HandleTransactionStateChanged);
+    AccountComposable.RegisterComponent(HandleAccountStateChanged);
+    await LoadInitialDataAsync();
   }
   private async Task LoadInitialDataAsync()
   {
-    LoadingService.IsLoading = true;
-
-    try
+    if (UserState.CurrentUser == null)
     {
-      if (UserState.CurrentUser == null)
-      {
-        await UserState.LoadUserDataAsync();
-      }
-
-      CurrentUser = UserState.CurrentUser;
-
-      if (CurrentUser != null)
-      {
-        if (AccountState.CurrentAccounts == null)
-        {
-          await AccountState.InitializeAccountStateAsync(CurrentUser.User.Id);
-        }
-        Account = AccountState.CurrentAccounts?.FirstOrDefault();
-        Accounts = AccountState.CurrentAccounts;
-
-        if (TransactionState.CurrentTransactions == null)
-        {
-          await TransactionState.InitializeTransactionStateAsync();
-        }
-        Transactions = TransactionState.CurrentTransactions;
-      }
+      @* await UserState.LoadUserDataAsync(); *@
     }
-    catch (Exception ex)
+
+    if (CurrentUser != null)
     {
-      Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
-      isDataLoaded = true;
-      LoadingService.IsLoading = false;
+      await AccountComposable.OnInitializeAsync(CurrentUser.User.Id, true);
+
+      if (TransactionState.CurrentTransactions == null)
+      {
+        await TransactionsComposable.OnInitializedAsync(true);
+      }
     }
   }
 
   private void HandleUserStateChanged()
   {
-    CurrentUser = UserState.CurrentUser;
     InvokeAsync(StateHasChanged);
   }
-
   private void HandleAccountStateChanged()
   {
-    Account = AccountState.CurrentAccounts?.FirstOrDefault();
     InvokeAsync(StateHasChanged);
   }
-
   private void HandleTransactionStateChanged()
   {
-    Transactions = TransactionState.CurrentTransactions;
     InvokeAsync(StateHasChanged);
   }
   private async Task StatementDialog()
@@ -229,8 +190,8 @@
     {
       if (UserState.CurrentUser != null)
       {
-        await AccountState.InitializeAccountStateAsync(UserState.CurrentUser.User.Id, true);
-        await TransactionState.InitializeTransactionStateAsync(true);
+        await AccountComposable.OnInitializeAsync(UserState.CurrentUser.User.Id, true);
+        await TransactionsComposable.OnInitializedAsync(true);
       }
     }
     );
@@ -242,10 +203,9 @@
   }
   public void Dispose()
   {
-    // Unsubscribe from events
     UserState.OnUserStateChanged -= HandleUserStateChanged;
-    AccountState.OnAccountStateChanged -= HandleAccountStateChanged;
-    TransactionState.OnTransactionStateChanged -= HandleTransactionStateChanged;
+    TransactionsComposable.UnregisterComponent(HandleTransactionStateChanged);
+    AccountComposable.UnregisterComponent(HandleAccountStateChanged);
   }
 }
 <style>
