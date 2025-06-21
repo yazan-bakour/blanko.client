@@ -4,6 +4,7 @@ using Banko.Client.Helper;
 using System.Text.Json;
 
 namespace Banko.Client.Services.Account;
+
 public class AccountService(
   HttpClient httpClient,
   IConfiguration configuration,

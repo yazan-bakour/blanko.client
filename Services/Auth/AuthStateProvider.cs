@@ -16,6 +16,12 @@ public class AuthStateProvider : AuthenticationStateProvider
   private readonly ICacheValidator<UserRead> _cacheValidator;
   private readonly HttpClient _httpClient;
 
+  public UserRead? AuthUser { get; private set; }
+  public Preferences UserPreferences { get; set; } = new();
+  public bool IsDarkMode => AuthUser?.User?.Preferences?.DarkMode ?? false;
+  public event Action? OnUserStateChanged;
+  public event Action? OnPreferencesChanged;
+
   public AuthStateProvider(
     IAuthService authService,
     AuthHelper authHelper,
@@ -35,24 +41,44 @@ public class AuthStateProvider : AuthenticationStateProvider
     };
   }
 
+  public void NotifyUserStateChanged()
+  {
+    OnUserStateChanged?.Invoke();
+  }
+
+  public void NotifyPreferencesChanged()
+  {
+    OnPreferencesChanged?.Invoke();
+  }
+
   public async Task Login(UserLogin loginModel)
   {
     await _authService.LoginAsync(loginModel);
     _userCache = null;
-    NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+    var state = await GetAuthenticationStateAsync();
+    NotifyAuthenticationStateChanged(Task.FromResult(state));
   }
+
   public async Task Register(UserRegister registerModel)
   {
     await _authService.RegisterAsync(registerModel);
     NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
   }
-  public async Task<UserRead> GetUserInfo()
+  public async Task<UserRead> GetUserInfo(bool force = false)
   {
-    if (_userCache != null)
+    if (!force && _userCache != null)
     {
       return _userCache;
     }
     _userCache = await _authService.UserInfoAsync();
+    AuthUser = _userCache;
+    if (AuthUser?.User?.Preferences != null)
+    {
+      UserPreferences = AuthUser.User.Preferences;
+      NotifyPreferencesChanged();
+    }
+
+    NotifyUserStateChanged();
     return _userCache;
   }
 
@@ -67,10 +93,17 @@ public class AuthStateProvider : AuthenticationStateProvider
       {
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var userInfo = await GetUserInfo();
+        Console.WriteLine("I called GetAuthenticationStateAsync");
 
         if (userInfo?.User != null)
         {
           var user = userInfo.User;
+          AuthUser = userInfo;
+          if (user.Preferences != null)
+          {
+            UserPreferences = user.Preferences;
+            NotifyPreferencesChanged();
+          }
           var claims = new List<Claim>
           {
               new (ClaimTypes.NameIdentifier, user.Id.ToString()),

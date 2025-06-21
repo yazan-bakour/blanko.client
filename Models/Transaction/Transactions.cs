@@ -113,20 +113,6 @@ namespace Banko.Client.Models.Transaction
     DirectDebit,
   }
 
-  public enum Currency
-  {
-    USD,
-    EUR,
-    GBP,
-    JPY,
-    AUD,
-    CAD,
-    CHF,
-    CNY,
-    SEK,
-    NZD
-  }
-
   public enum TransactionStatus
   {
     Created,

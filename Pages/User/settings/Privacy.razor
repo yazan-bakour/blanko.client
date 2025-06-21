@@ -2,17 +2,19 @@
 
 @using Banko.Client.Models.User;
 @using Banko.Client.Services.User
+@using Banko.Client.Services.Auth
 @using Banko.Client.Services
 @inject UserStateService UserState
 @inject LoadingService LoadingService
 @inject ISnackbar Snackbar
+@inject AuthStateProvider AuthState
 
 <MudPaper Class="pa-4" Elevation="0">
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Privacy</MudText>
 
     <MudItem Style="height: 50px;">
-      @if (UserState.Preference.Privacy != _originalHideEmail)
+      @if (isInitialized && AuthState.UserPreferences.Privacy.HideEmail != _originalHideEmail)
       {
         <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleEmailSaveAsync"
           Class="mr-2" Disabled="LoadingService.IsLoading">Save</MudButton>
@@ -25,53 +27,38 @@
 
   <MudGrid Class="mt-4">
     <MudItem>
-      <MudSwitch T="bool" Value="UserState.Preference.Privacy" ValueChanged="SwitchHideEmail" Color="Color.Primary">
-        @(UserState.Preference.Privacy ? "Hide Email" : "Show Email")
+      <MudSwitch T="bool" Value="AuthState.UserPreferences.Privacy.HideEmail" ValueChanged="SwitchHideEmail"
+        Color="Color.Primary">
+        @(AuthState.UserPreferences.Privacy.HideEmail ? "Hide Email" : "Show Email")
       </MudSwitch>
     </MudItem>
   </MudGrid>
 </MudPaper>
 
 @code {
+  private bool isInitialized = false;
   private bool _originalHideEmail;
-
-  protected override async Task OnInitializedAsync()
+  protected override void OnAfterRender(bool firstRender)
   {
-    try
+    if (firstRender)
     {
-      LoadingService.IsLoading = true;
-      @* await UserState.LoadUserDataAsync(); *@
-      var privacy = GetPrivacy();
-      UserState.Preference.Privacy = privacy;
-      _originalHideEmail = privacy;
+      _originalHideEmail = AuthState.UserPreferences.Privacy.HideEmail;
+      isInitialized = true;
     }
-    catch (Exception ex)
-    {
-      Snackbar.Add($"Error subscribing to UserState.OnUserStateChanged: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
-      LoadingService.IsLoading = false;
-    }
-  }
-  private bool GetPrivacy()
-  {
-    return UserState.CurrentUser?.User?.Preferences?
-    .GetValueOrDefault("HideEmail") is string value &&
-    bool.TryParse(value, out var result) ? result : false;
   }
   private void SwitchHideEmail(bool newValue)
   {
-    UserState.Preference.Privacy = newValue;
-    UserState.NotifyUserStateChanged();
+    AuthState.UserPreferences.Privacy.HideEmail = newValue;
+    StateHasChanged();
+    AuthState.NotifyPreferencesChanged();
   }
   private async Task HandleEmailSaveAsync()
   {
     LoadingService.IsLoading = true;
-    var success = await UserState.UpdatePreference(UserState.Preference);
+    var success = await UserState.UpdatePreference(AuthState.UserPreferences);
     if (success)
     {
-      _originalHideEmail = UserState.Preference.Privacy;
+      _originalHideEmail = AuthState.UserPreferences.Privacy?.HideEmail ?? false;
       Snackbar.Add("Privacy updated.", Severity.Success);
     }
     else
@@ -82,15 +69,8 @@
   }
   private void CancelEdit()
   {
-    UserState.Preference.Privacy = GetPrivacy();
-    HandleUserStateChanged();
-  }
-  private void HandleUserStateChanged()
-  {
-    InvokeAsync(StateHasChanged);
-  }
-  public void Dispose()
-  {
-    UserState.OnUserStateChanged -= HandleUserStateChanged;
+    AuthState.UserPreferences.Privacy.HideEmail = _originalHideEmail;
+    StateHasChanged();
+    AuthState.NotifyPreferencesChanged();
   }
 }

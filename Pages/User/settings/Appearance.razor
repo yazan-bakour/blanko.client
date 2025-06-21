@@ -2,17 +2,19 @@
 
 @using Banko.Client.Models.User
 @using Banko.Client.Services.User
+@using Banko.Client.Services.Auth
 @using Banko.Client.Services
 
 @inject UserStateService UserState
 @inject LoadingService LoadingService
 @inject ISnackbar Snackbar
+@inject AuthStateProvider AuthState
 
 <MudPaper Class="pa-4" Elevation="0">
   <MudItem xs="12" Class="d-flex justify-space-between">
     <MudText Typo="Typo.h5">Appearance Settings</MudText>
     <MudItem Style="height: 50px;">
-      @if (isInitialized && UserState.Preference.Theme != _originalTheme)
+      @if (isInitialized && AuthState.UserPreferences.DarkMode != _originalTheme)
       {
         <MudButton DropShadow="false" Variant="Variant.Filled" Color="Color.Dark" OnClick="HandleSaveAsync" Class="mr-2"
           Disabled="LoadingService.IsLoading">Save</MudButton>
@@ -25,8 +27,9 @@
 
   <MudGrid Class="mt-4">
     <MudItem>
-      <MudSwitch T="bool" Color="Color.Primary" Value="UserState.Preference.Theme" ValueChanged="OnThemeSwitchChanged">
-        @(UserState.Preference.Theme ? "Dark Mode" : "Light Mode")
+      <MudSwitch T="bool" Color="Color.Primary" Value="AuthState.UserPreferences.DarkMode"
+        ValueChanged="OnThemeSwitchChanged">
+        @(AuthState.UserPreferences.DarkMode ? "Dark Mode" : "Light Mode")
       </MudSwitch>
     </MudItem>
   </MudGrid>
@@ -35,45 +38,28 @@
 @code {
   private bool isInitialized = false;
   private bool _originalTheme;
-  protected override async Task OnInitializedAsync()
+  protected override void OnAfterRender(bool firstRender)
   {
-    LoadingService.IsLoading = true;
-    try
+    if (firstRender)
     {
-      @* await UserState.LoadUserDataAsync(); *@
-      var darkMode = GetDarkModePreference();
-      UserState.Preference.Theme = darkMode;
-      _originalTheme = darkMode;
-    }
-    catch (Exception ex)
-    {
-      Snackbar.Add($"Error subscribing to UserState.OnUserStateChanged: {ex.Message}", Severity.Error);
-    }
-    finally
-    {
+      _originalTheme = AuthState.UserPreferences.DarkMode;
       isInitialized = true;
-      LoadingService.IsLoading = false;
     }
   }
   private void OnThemeSwitchChanged(bool newValue)
   {
-    UserState.Preference.Theme = newValue;
-    UserState.NotifyUserStateChanged();
-  }
-  private bool GetDarkModePreference()
-  {
-    return UserState.CurrentUser?.User?.Preferences?
-    .GetValueOrDefault("DarkMode") is string value &&
-    bool.TryParse(value, out var result) ? result : false;
+    AuthState.UserPreferences.DarkMode = newValue;
+    StateHasChanged();
+    AuthState.NotifyPreferencesChanged();
   }
   private async Task HandleSaveAsync()
   {
     LoadingService.IsLoading = true;
-    var success = await UserState.UpdatePreference(UserState.Preference);
+    var success = await UserState.UpdatePreference(AuthState.UserPreferences);
 
     if (success)
     {
-      _originalTheme = UserState.Preference.Theme;
+      _originalTheme = AuthState.UserPreferences.DarkMode;
       Snackbar.Add("Appearance settings saved.", Severity.Success);
     }
     else
@@ -82,18 +68,10 @@
     }
     LoadingService.IsLoading = false;
   }
-
   private void CancelEdit()
   {
-    UserState.Preference.Theme = GetDarkModePreference();
-    HandleUserStateChanged();
-  }
-  private void HandleUserStateChanged()
-  {
-    InvokeAsync(StateHasChanged);
-  }
-  public void Dispose()
-  {
-    UserState.OnUserStateChanged -= HandleUserStateChanged;
+    AuthState.UserPreferences.DarkMode = _originalTheme;
+    StateHasChanged();
+    AuthState.NotifyPreferencesChanged();
   }
 }

@@ -3,18 +3,17 @@
 @using Banko.Client.Services.User
 @using MudBlazor.Utilities
 @using Banko.Client.Helper
+@using Banko.Client.State
 
 @inject UserStateService UserState
 @inject LoadingService LoadingService
-@inject AuthenticationStateProvider AuthStateProvider
+@inject AuthStateProvider AuthState
 @inject LoadingService LoadingService
 
 @* <BankoSnackbar /> *@
 
 <CascadingAuthenticationState>
-
   <MudThemeProvider @ref="@_mudThemeProvider" @bind-IsDarkMode="@IsDark" Theme="ThemeCustomColors.AppTheme" />
-
   <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
       <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -42,32 +41,28 @@
 <MudSnackbarProvider />
 
 @code {
-  private bool IsDark;
+  private bool IsDark {
+    get => AuthState.UserPreferences.DarkMode;
+    set {
+      AuthState.UserPreferences.DarkMode = value;
+    }
+  }
   private MudThemeProvider? _mudThemeProvider;
-  protected override async Task OnInitializedAsync()
-  {
-    UserState.OnUserStateChanged += OnUserStateChanged;
-    var authState = await AuthStateProvider.GetAuthenticationStateAsync();
 
-    if (authState.User.Identity?.IsAuthenticated == true)
+  protected override void OnAfterRender(bool firstRender)
+  {
+    if (firstRender)
     {
-      await UserState.LoadUserDataAsync();
-      IsDark = UserState.Preference.Theme;
+      AuthState.OnPreferencesChanged += OnPreferencesChanged;
     }
   }
-
-  private void OnUserStateChanged()
+  private void OnPreferencesChanged()
   {
-    if (IsDark != UserState.Preference.Theme)
-    {
-      IsDark = UserState.Preference.Theme;
-      InvokeAsync(StateHasChanged);
-    }
+    InvokeAsync(StateHasChanged);
   }
-
   public void Dispose()
   {
-    UserState.OnUserStateChanged -= OnUserStateChanged;
+    AuthState.OnPreferencesChanged -= OnPreferencesChanged;
   }
 }
 <style>

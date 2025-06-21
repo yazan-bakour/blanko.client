@@ -134,25 +134,20 @@
 
   protected override async Task OnInitializedAsync()
   {
-    UserState.OnUserStateChanged += HandleUserStateChanged;
     TransactionsComposable.RegisterComponent(HandleTransactionStateChanged);
     AccountComposable.RegisterComponent(HandleAccountStateChanged);
     await LoadInitialDataAsync();
   }
   private async Task LoadInitialDataAsync()
   {
-    if (UserState.CurrentUser == null)
-    {
-      @* await UserState.LoadUserDataAsync(); *@
-    }
-
     if (CurrentUser != null)
     {
-      await AccountComposable.OnInitializeAsync(CurrentUser.User.Id, true);
+      bool forceRefresh = true;
+      await AccountComposable.OnInitializeAsync(CurrentUser.User.Id, forceRefresh);
 
       if (TransactionState.CurrentTransactions == null)
       {
-        await TransactionsComposable.OnInitializedAsync(true);
+        await TransactionsComposable.OnInitializedAsync(forceRefresh);
       }
     }
   }

@@ -28,9 +28,7 @@ namespace Banko.Client.Extensions
         Gender = src.User.Gender,
         ProfilePictureDisplay = src.User.ProfilePictureDisplay,
         ProfilePictureUrl = src.User.ProfilePictureUrl,
-        Preferences = src.User.Preferences != null
-                  ? new Dictionary<string, string>(src.User.Preferences)
-                  : new Dictionary<string, string>()
+        Preferences = src.User.Preferences ?? new()
       };
     }
   }

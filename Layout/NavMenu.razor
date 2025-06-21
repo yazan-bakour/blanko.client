@@ -93,11 +93,6 @@
   private bool _open = true;
   [Parameter] public EventCallback<bool> OpenChanged { get; set; }
 
-  private async Task HandleLogout()
-  {
-    await AuthService.LogoutAsync();
-    await OpenChanged.InvokeAsync(false);
-  }
   private bool IsProfileRoute()
   {
     var currentUri = NavigationManager.Uri;

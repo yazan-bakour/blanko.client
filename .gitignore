@@ -9,6 +9,7 @@ obj/
 .editorconfig
 .env
 TODO.txt
+Notes.txt
 
 # Library files managed by LibMan
 wwwroot/lib/

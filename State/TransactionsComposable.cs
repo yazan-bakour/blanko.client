@@ -11,7 +11,7 @@ namespace Banko.Client.State
 
     public async Task OnInitializedAsync(bool forceRefresh = false)
     {
-      if (!forceRefresh) { return; }
+      if (LoadingService.IsLoading && !forceRefresh) { return; }
       LoadingService.IsLoading = true;
       try
       {

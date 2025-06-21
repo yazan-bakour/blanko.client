@@ -1,11 +1,30 @@
 using System.Text.Json.Serialization;
+using Banko.Client.Models.Account;
 
 namespace Banko.Client.Models.User
 {
-  public class Preference
+  public class Privacy
   {
-    public bool Privacy { get; set; }
-    public bool Theme { get; set; }
+    public bool HideEmail { get; set; } = false;
+    public bool HideBalance { get; set; } = false;
+    public bool EnableTwoFactorAuth { get; set; } = false;
+    public bool ReceiveMarketingEmails { get; set; } = true;
+  }
+
+  public class Preferences
+  {
+    public bool DarkMode { get; set; } = false;
+    public string Language { get; set; } = "en-US";
+    public string TimeZone { get; set; } = "UTC";
+    public string DateFormat { get; set; } = "MM/dd/yyyy";
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public Currency CurrencyDisplay { get; set; } = Currency.EUR;
+    public bool PushNotifications { get; set; } = true;
+    public bool TransactionAlerts { get; set; } = true;
+    public bool LowBalanceAlerts { get; set; } = true;
+    public decimal LowBalanceThreshold { get; set; } = 100.00m;
+    public Privacy Privacy { get; set; } = new Privacy();
   }
   public enum UserRole
   {
@@ -26,7 +45,7 @@ namespace Banko.Client.Models.User
   }
   public record UserData
   {
-    public Dictionary<string, string>? Preferences { get; set; }
+    public Preferences? Preferences { get; set; }
     public int Id { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

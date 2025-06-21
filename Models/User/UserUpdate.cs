@@ -63,5 +63,5 @@ public class UserUpdate
   public string? ProfilePictureUrl { get; set; }
   public string? ProfilePictureFile { get; set; }
   public string? ProfilePictureDisplay { get; set; }
-  public Dictionary<string, string>? Preferences { get; set; }
+  public Preferences Preferences { get; set; }
 }
